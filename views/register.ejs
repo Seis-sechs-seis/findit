@@ -180,6 +180,10 @@
             <div class="invalid-feedback">You must agree to the terms.</div>
           </div>
 
+          <% if (typeof turnstileSiteKey !== 'undefined' && turnstileSiteKey) { %>
+          <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-theme="auto"></div>
+          <% } %>
+
           <button type="submit" class="btn btn-primary w-full" data-loading-text="Creating account...">Sign Up</button>
         </form>
 
@@ -193,6 +197,10 @@
     </div>
   </div>
 </section>
+
+<% if (typeof turnstileSiteKey !== 'undefined' && turnstileSiteKey) { %>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<% } %>
 
 <script>
   (() => {

@@ -60,7 +60,9 @@ async function grantSupabase(normalizedEmail) {
     .select('id, email, role')
     .eq('normalizedEmail', normalizedEmail)
     .maybeSingle();
-  if (findErr) throw findErr;
+  if (findErr) {
+    throw findErr;
+  }
   if (!user) {
     console.error(`No user found with email: ${email}`);
     process.exit(1);
@@ -73,7 +75,9 @@ async function grantSupabase(normalizedEmail) {
     .from('users')
     .update({ role: 'admin' })
     .eq('id', user.id);
-  if (updateErr) throw updateErr;
+  if (updateErr) {
+    throw updateErr;
+  }
   console.log(`Done — ${user.email} is now an admin.`);
   process.exit(0);
 }

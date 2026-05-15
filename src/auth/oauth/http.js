@@ -72,7 +72,9 @@ async function getText(url, timeoutMs = 20_000) {
     headersTimeout: timeoutMs,
     bodyTimeout: timeoutMs,
   });
-  if (statusCode !== 200) throw new Error(`HTTP ${statusCode}`);
+  if (statusCode !== 200) {
+    throw new Error(`HTTP ${statusCode}`);
+  }
   return stream.text();
 }
 

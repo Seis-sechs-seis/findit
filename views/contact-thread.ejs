@@ -245,7 +245,7 @@ const threadThumbUrl = galleryImages[0] || '/images/hero-bg.jpg';
         <% } %>
         <% } %>
 
-        <% if (contact.status === 'closed') { %>
+        <% if (contact.status === 'closed' && isOwner) { %>
         <div class="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center">
           <form
             method="POST"

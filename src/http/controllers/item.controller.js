@@ -639,6 +639,7 @@ async function editGet(req, res, next) {
         contactEmail: item.contactEmail,
         verificationPrompt: item.verificationPrompt || '',
         verificationAnswer: '',
+        imagesJson: item.imagesJson ?? null,
       },
     });
   } catch (err) {
@@ -648,10 +649,85 @@ async function editGet(req, res, next) {
 
 async function editPost(req, res, next) {
   try {
+    if (req.uploadError) {
+      const item = await itemRepo.getById(req.params.id);
+      if (!item) {
+        return res.status(404).render('404', { title: 'Item Not Found' });
+      }
+      const msg =
+        req.uploadError.code === 'LIMIT_FILE_SIZE'
+          ? 'Each image must be 8 MB or smaller.'
+          : req.uploadError.message || 'Image upload failed.';
+      return res.status(400).render('item-edit', {
+        title: `Edit: ${item.title}`,
+        categories: CATEGORIES,
+        errors: [msg],
+        item,
+        formData: { ...req.body, imagesJson: item.imagesJson ?? null },
+      });
+    }
+
     const item = await itemRepo.getById(req.params.id);
     if (!item) {
       return res.status(404).render('404', { title: 'Item Not Found' });
     }
+
+    // Build updated images list: start from existing, remove requested, append new uploads
+    let existingUrls = [];
+    try {
+      const raw = item.imagesJson;
+      if (raw) {
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (Array.isArray(parsed)) {
+          existingUrls = parsed;
+        }
+      }
+    } catch (_e) {
+      existingUrls = [];
+    }
+
+    // Remove images the user clicked × on
+    const removeRaw = String(req.body.removeImages || '').trim();
+    if (removeRaw) {
+      const toRemove = new Set(
+        removeRaw
+          .split(',')
+          .map((u) => u.trim())
+          .filter(Boolean)
+      );
+      existingUrls = existingUrls.filter((u) => !toRemove.has(u));
+    }
+
+    // Upload new images
+    let newImagesJson = null;
+    try {
+      newImagesJson = await persistUploadedReportImages(req);
+    } catch (e) {
+      return res.status(400).render('item-edit', {
+        title: `Edit: ${item.title}`,
+        categories: CATEGORIES,
+        errors: [e.message || 'Upload failed.'],
+        item,
+        formData: { ...req.body, imagesJson: item.imagesJson ?? null },
+      });
+    }
+
+    let newUrls = [];
+    try {
+      if (newImagesJson) {
+        const parsed =
+          typeof newImagesJson === 'string' ? JSON.parse(newImagesJson) : newImagesJson;
+        if (Array.isArray(parsed)) {
+          newUrls = parsed;
+        }
+      }
+    } catch (_e) {
+      newUrls = [];
+    }
+
+    const allUrls = [...existingUrls, ...newUrls].slice(0, 8);
+    const imagesJson = allUrls.length ? JSON.stringify(allUrls) : null;
+
     const data = {
       title: req.body.title,
       description: req.body.description,
@@ -664,7 +740,7 @@ async function editPost(req, res, next) {
       contactEmail: req.body.contactEmail,
       verificationPrompt: sanitizeText(req.body.verificationPrompt, 255),
       verificationAnswer: sanitizeText(req.body.verificationAnswer, 200),
-      imagesJson: item.imagesJson ?? null,
+      imagesJson,
     };
     const result = await itemRepo.updateById(item.id, data);
     if (!result.success) {
@@ -673,7 +749,7 @@ async function editPost(req, res, next) {
         categories: CATEGORIES,
         errors: result.errors,
         item,
-        formData: data,
+        formData: { ...data, imagesJson: item.imagesJson ?? null },
       });
     }
     return res.redirect('/dashboard');
@@ -1143,13 +1219,11 @@ async function contactThreadMessagePost(req, res, next) {
     }
     if (contact.status !== 'approved') {
       return json
-        ? res
-            .status(409)
-            .json({
-              ok: false,
-              error: 'thread_closed',
-              message: 'This thread is not open for messages.',
-            })
+        ? res.status(409).json({
+            ok: false,
+            error: 'thread_closed',
+            message: 'This thread is not open for messages.',
+          })
         : res.redirect(redirectUrl);
     }
 
@@ -1245,7 +1319,8 @@ async function contactThreadReopenPost(req, res, next) {
       return res.status(404).render('404', { title: 'Not Found' });
     }
     const uid = Number(user.id);
-    if (uid !== Number(contact.ownerUserId) && uid !== Number(contact.requesterUserId)) {
+    const isAdmin = user.role === 'admin';
+    if (!isAdmin && uid !== Number(contact.ownerUserId)) {
       return res.status(403).render('404', { title: 'Access Denied' });
     }
 

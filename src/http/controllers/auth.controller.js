@@ -7,8 +7,8 @@ const {
   registerLoginFailure,
   clearLoginFailures,
   isChallengeRequiredForKey,
-  createChallenge,
 } = require('../../services/auth-risk.service');
+const { verifyTurnstile } = require('../../services/turnstile.service');
 
 const userRepo = new UserRepository();
 
@@ -31,20 +31,15 @@ function showLogin(req, res) {
     oauthErrors.push(...req.session.oauthFlash.errors);
     delete req.session.oauthFlash;
   }
-  const hasChallenge = Boolean(
-    req.session &&
-    req.session.loginChallenge &&
-    req.session.loginChallenge.prompt &&
-    req.session.loginChallenge.answer
-  );
+  const requiresTurnstile = Boolean(req.session && req.session.requiresTurnstile);
   res.render('login', {
     title: 'Login',
     errors: [],
     oauthErrors,
     formData: { email: '', password: '' },
     nextUrl,
-    requiresChallenge: hasChallenge,
-    challengePrompt: hasChallenge ? req.session.loginChallenge.prompt : '',
+    requiresTurnstile,
+    turnstileSiteKey: requiresTurnstile ? process.env.CLOUDFLARE_TURNSTILE_SITE_KEY || '' : '',
   });
 }
 
@@ -90,60 +85,44 @@ function renderResetPassword(res, options = {}) {
 
 async function postLogin(req, res, next) {
   try {
-    const { email, password, challengeAnswer, next: nextField } = req.body;
+    const { email, password, 'cf-turnstile-response': turnstileToken, next: nextField } = req.body;
     const nextUrl = safeNextUrl(nextField || req.query.next);
 
-    if (honeypotTripped(req.body)) {
-      const riskKeyHp = buildLoginRiskKey(req.ip, email);
-      const shouldChallengeHp = isChallengeRequiredForKey(riskKeyHp);
-      if (
-        shouldChallengeHp &&
-        (!req.session.loginChallenge || !req.session.loginChallenge.prompt)
-      ) {
-        req.session.loginChallenge = createChallenge();
+    const sessionRequiresTurnstile = Boolean(req.session && req.session.requiresTurnstile);
+
+    const renderLogin = (errors, requiresTurnstile = sessionRequiresTurnstile) => {
+      if (requiresTurnstile && req.session) {
+        req.session.requiresTurnstile = true;
       }
       return res.status(400).render('login', {
         title: 'Login',
-        errors: ['Invalid email or password.'],
+        errors,
         oauthErrors: [],
         formData: { email: email || '', password: password || '' },
         nextUrl,
-        requiresChallenge: shouldChallengeHp,
-        challengePrompt: shouldChallengeHp ? req.session.loginChallenge.prompt : '',
+        requiresTurnstile,
+        turnstileSiteKey: requiresTurnstile ? process.env.CLOUDFLARE_TURNSTILE_SITE_KEY || '' : '',
       });
+    };
+
+    if (honeypotTripped(req.body)) {
+      return renderLogin(['Invalid email or password.']);
+    }
+
+    // Only verify Turnstile when the challenge is active for this session
+    if (sessionRequiresTurnstile) {
+      const tsResult = await verifyTurnstile(turnstileToken, req.ip);
+      if (!tsResult.success) {
+        return renderLogin([tsResult.error || 'Security check failed. Please try again.'], true);
+      }
     }
 
     const riskKey = buildLoginRiskKey(req.ip, email);
-    const requiresChallenge = isChallengeRequiredForKey(riskKey);
-
-    if (requiresChallenge) {
-      const challenge = req.session.loginChallenge;
-      const hasValidChallenge = Boolean(challenge && challenge.prompt && challenge.answer);
-      if (!hasValidChallenge) {
-        req.session.loginChallenge = createChallenge();
-      }
-      const expected = hasValidChallenge ? challenge.answer : req.session.loginChallenge.answer;
-      if (String(challengeAnswer || '').trim() !== String(expected)) {
-        return res.status(400).render('login', {
-          title: 'Login',
-          errors: ['Suspicious login detected. Please solve the challenge.'],
-          oauthErrors: [],
-          formData: { email: email || '', password: password || '' },
-          nextUrl,
-          requiresChallenge: true,
-          challengePrompt: req.session.loginChallenge.prompt,
-        });
-      }
-    }
-
     const result = await userRepo.verifyLogin(email, password);
 
     if (!result.success) {
       registerLoginFailure(riskKey);
       const shouldChallenge = isChallengeRequiredForKey(riskKey);
-      if (shouldChallenge && (!req.session.loginChallenge || !req.session.loginChallenge.prompt)) {
-        req.session.loginChallenge = createChallenge();
-      }
       if (result.requiresVerification && result.email) {
         return renderVerifyEmail(req, res, {
           errors: result.errors,
@@ -151,20 +130,12 @@ async function postLogin(req, res, next) {
           nextUrl,
         });
       }
-      return res.status(400).render('login', {
-        title: 'Login',
-        errors: result.errors,
-        oauthErrors: [],
-        formData: { email: email || '', password: password || '' },
-        nextUrl,
-        requiresChallenge: shouldChallenge,
-        challengePrompt: shouldChallenge ? req.session.loginChallenge.prompt : '',
-      });
+      return renderLogin(result.errors, shouldChallenge || sessionRequiresTurnstile);
     }
 
     clearLoginFailures(riskKey);
-    if (req.session && req.session.loginChallenge) {
-      delete req.session.loginChallenge;
+    if (req.session && req.session.requiresTurnstile) {
+      delete req.session.requiresTurnstile;
     }
 
     const userPayload = {
@@ -181,7 +152,12 @@ async function postLogin(req, res, next) {
         return next(regErr);
       }
       req.session.user = userPayload;
-      return res.redirect(resolvePostAuthRedirect(nextUrl));
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          return next(saveErr);
+        }
+        return res.redirect(resolvePostAuthRedirect(nextUrl));
+      });
     });
   } catch (err) {
     next(err);
@@ -208,26 +184,23 @@ async function postRegister(req, res, next) {
     const { firstName, lastName, email, password, confirmPassword, next: nextField } = req.body;
     const nextUrl = safeNextUrl(nextField || req.query.next);
 
-    if (honeypotTripped(req.body)) {
-      return res.status(400).render('register', {
+    const renderRegister = (errors, status = 400) =>
+      res.status(status).render('register', {
         title: 'Register',
-        errors: ['We could not complete registration. Please try again later.'],
+        errors,
         oauthErrors: [],
         formData: { firstName: firstName || '', lastName: lastName || '', email: email || '' },
         nextUrl,
       });
+
+    if (honeypotTripped(req.body)) {
+      return renderRegister(['We could not complete registration. Please try again later.']);
     }
 
     if (isDisposableEmail(email)) {
-      return res.status(400).render('register', {
-        title: 'Register',
-        errors: [
-          'Disposable or temporary emails are not allowed. Please use a permanent email address.',
-        ],
-        oauthErrors: [],
-        formData: { firstName: firstName || '', lastName: lastName || '', email: email || '' },
-        nextUrl,
-      });
+      return renderRegister([
+        'Disposable or temporary emails are not allowed. Please use a permanent email address.',
+      ]);
     }
 
     const result = await userRepo.create({
@@ -240,13 +213,7 @@ async function postRegister(req, res, next) {
     });
 
     if (!result.success) {
-      return res.status(400).render('register', {
-        title: 'Register',
-        errors: result.errors,
-        oauthErrors: [],
-        formData: { firstName: firstName || '', lastName: lastName || '', email: email || '' },
-        nextUrl,
-      });
+      return renderRegister(result.errors);
     }
 
     await sendOtpEmail({
@@ -345,7 +312,12 @@ async function postVerifyEmail(req, res, next) {
       if (req.session && req.session.verifyEmailPending) {
         delete req.session.verifyEmailPending;
       }
-      return res.redirect(resolvePostAuthRedirect(nextUrl));
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          return next(saveErr);
+        }
+        return res.redirect(resolvePostAuthRedirect(nextUrl));
+      });
     });
   } catch (err) {
     next(err);

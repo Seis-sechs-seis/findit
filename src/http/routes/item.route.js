@@ -29,7 +29,21 @@ router.post(
   itemController.reportPost
 );
 router.get('/:id/edit', requireAuth, requireAdmin, itemController.editGet);
-router.post('/:id/edit', requireAuth, requireAdmin, itemController.editPost);
+router.post(
+  '/:id/edit',
+  requireAuth,
+  requireAdmin,
+  (req, res, next) => {
+    reportImagesUpload.array('photos', 8)(req, res, (err) => {
+      if (err) {
+        req.uploadError = err;
+      }
+      next();
+    });
+  },
+  requireCsrfToken,
+  itemController.editPost
+);
 router.post('/:id/delete', requireAuth, requireAdmin, itemController.deletePost);
 router.post('/:id/toggle-status', requireAuth, requireAdmin, itemController.toggleStatusPost);
 router.post(

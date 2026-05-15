@@ -107,22 +107,8 @@
             <div class="invalid-feedback">Password is required.</div>
           </div>
 
-          <% if (typeof requiresChallenge !== 'undefined' && requiresChallenge) { %>
-          <div class="field">
-            <label for="challengeAnswer" class="field-label">Security Check</label>
-            <div class="text-xs mb-1 text-secondary"><%= challengePrompt %></div>
-            <input
-              type="text"
-              class="field-input"
-              id="challengeAnswer"
-              name="challengeAnswer"
-              placeholder="Your answer"
-              required
-              autocomplete="off"
-              data-validate="required"
-            />
-            <div class="invalid-feedback">Please answer the security check.</div>
-          </div>
+          <% if (typeof requiresTurnstile !== 'undefined' && requiresTurnstile && turnstileSiteKey) { %>
+          <div class="cf-turnstile" data-sitekey="<%= turnstileSiteKey %>" data-theme="auto"></div>
           <% } %>
 
           <button type="submit" class="btn btn-primary w-full" data-loading-text="Logging in...">Login</button>
@@ -138,6 +124,10 @@
     </div>
   </div>
 </section>
+
+<% if (typeof requiresTurnstile !== 'undefined' && requiresTurnstile && turnstileSiteKey) { %>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<% } %>
 
 <script>
   (() => {
