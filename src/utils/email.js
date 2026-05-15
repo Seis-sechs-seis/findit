@@ -54,7 +54,6 @@ function mergeLines(raw, into) {
   }
 }
 
-
 function trySave(p, text) {
   try {
     fs.mkdirSync(path.dirname(p), { recursive: true });

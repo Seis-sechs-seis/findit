@@ -132,7 +132,9 @@ async function sendViaSmtp({ toEmail, fromEmail, subject, html }) {
 let lastLoggedOtp = null;
 
 function otpEmailMode() {
-  return String(process.env.OTP_EMAIL_MODE || 'smtp').toLowerCase().trim();
+  return String(process.env.OTP_EMAIL_MODE || 'smtp')
+    .toLowerCase()
+    .trim();
 }
 
 function clearLastLoggedOtp() {
@@ -157,7 +159,10 @@ async function sendOtpEmail({ toEmail, otpCode }) {
         'OTP_EMAIL_MODE=log is not allowed in production (set ALLOW_OTP_EMAIL_LOG=1 to override).'
       );
     }
-    lastLoggedOtp = { toEmail: String(toEmail || '').trim(), otpCode: String(otpCode || '').trim() };
+    lastLoggedOtp = {
+      toEmail: String(toEmail || '').trim(),
+      otpCode: String(otpCode || '').trim(),
+    };
     console.error(`[otp-email] to=${lastLoggedOtp.toEmail} code=${lastLoggedOtp.otpCode}`);
     return { delivered: true, mode: 'log' };
   }

@@ -34,7 +34,10 @@ async function run() {
 
 async function grantMysql(normalizedEmail) {
   const pool = require('../src/db/pool');
-  const [rows] = await pool.query('SELECT id, email, role FROM users WHERE normalizedEmail = ? LIMIT 1', [normalizedEmail]);
+  const [rows] = await pool.query(
+    'SELECT id, email, role FROM users WHERE normalizedEmail = ? LIMIT 1',
+    [normalizedEmail]
+  );
   const user = rows[0];
   if (!user) {
     console.error(`No user found with email: ${email}`);

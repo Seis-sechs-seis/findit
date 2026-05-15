@@ -5,6 +5,28 @@ const helmet = require('helmet');
 const path = require('path');
 const session = require('express-session');
 
+function buildSessionStore() {
+  const provider = (process.env.DB_PROVIDER || 'mysql').toLowerCase();
+  if (provider === 'supabase') {
+    const SupabaseSessionStore = require('./db/session');
+    return new SupabaseSessionStore();
+  }
+  // MySQL
+  const MySQLStore = require('express-mysql-session')(session);
+  return new MySQLStore({
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: Number(process.env.DB_PORT) || 3306,
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'findit',
+    createDatabaseTable: true,
+    clearExpired: true,
+    checkExpirationInterval: 15 * 60 * 1000,
+    expiration: 7 * 24 * 60 * 60 * 1000,
+    connectionLimit: 5,
+  });
+}
+
 const { requestLogger, setLocals, notFoundHandler, errorHandler } = require('./http/middleware');
 const { globalCsrfGuard } = require('./http/middleware/csrf');
 const { sameOriginGuard } = require('./http/middleware/safeOrigin');
@@ -81,14 +103,31 @@ app.use(
 );
 
 const sessionSecret = process.env.SESSION_SECRET;
-if (!sessionSecret && app.get('env') === 'production') {
+if (!sessionSecret && isProd) {
   console.warn('[warn] SESSION_SECRET is not set; set it in production.');
 }
+
+const sessionStore = (() => {
+  try {
+    return buildSessionStore();
+  } catch (err) {
+    console.warn(
+      '[warn] Could not initialise session store, falling back to MemoryStore:',
+      err.message
+    );
+    return undefined;
+  }
+})();
+
+// secure:true whenever the request arrives over HTTPS — covers Vercel (always HTTPS)
+// and any reverse-proxy that forwards the original protocol in X-Forwarded-Proto.
+const secureCookie = isProd || process.env.COOKIE_SECURE === '1';
 
 app.use(
   session({
     name: 'findit.sid',
     secret: sessionSecret || 'dev-only-change-me',
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
     rolling: true,
@@ -96,7 +135,7 @@ app.use(
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      secure: secureCookie,
     },
   })
 );

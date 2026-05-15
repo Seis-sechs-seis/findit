@@ -18,7 +18,11 @@ const requestRepo = new ContactRequestRepository();
 const threadMessageRepo = new ContactThreadMessageRepository();
 const userRepo = new UserRepository();
 
-const { markThreadOpened, countUnreadForUser, invalidateUnreadCountCacheForUser } = require('../services/inboxUnread.service');
+const {
+  markThreadOpened,
+  countUnreadForUser,
+  invalidateUnreadCountCacheForUser,
+} = require('../services/inboxUnread.service');
 
 function sanitizeText(value, maxLen) {
   return String(value || '')
@@ -348,13 +352,11 @@ async function persistUploadedReportImages(req) {
       const supabase = getSupabaseClient();
       const ext = extFromMime(file.mimetype);
       const objectPath = `reports/${crypto.randomUUID()}-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from(bucket)
-        .upload(objectPath, file.buffer, {
-          contentType: file.mimetype || 'image/jpeg',
-          cacheControl: '3600',
-          upsert: false,
-        });
+      const { error: upErr } = await supabase.storage.from(bucket).upload(objectPath, file.buffer, {
+        contentType: file.mimetype || 'image/jpeg',
+        cacheControl: '3600',
+        upsert: false,
+      });
       if (upErr) {
         const err = new Error(upErr.message || 'Failed to upload image to storage.');
         err.code = 'ITEM_IMAGE_UPLOAD_FAILED';
@@ -399,13 +401,11 @@ async function persistThreadMessageAttachment(req) {
     const supabase = getSupabaseClient();
     const ext = extFromMimeThreadAttachment(file.mimetype);
     const objectPath = `thread-messages/${crypto.randomUUID()}-${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage
-      .from(bucket)
-      .upload(objectPath, file.buffer, {
-        contentType: file.mimetype || 'image/jpeg',
-        cacheControl: '3600',
-        upsert: false,
-      });
+    const { error: upErr } = await supabase.storage.from(bucket).upload(objectPath, file.buffer, {
+      contentType: file.mimetype || 'image/jpeg',
+      cacheControl: '3600',
+      upsert: false,
+    });
     if (upErr) {
       const err = new Error(upErr.message || 'Failed to upload attachment.');
       err.code = 'ITEM_IMAGE_UPLOAD_FAILED';
@@ -992,8 +992,13 @@ async function contactThreadGet(req, res, next) {
 async function contactThreadBootstrapGet(req, res, next) {
   try {
     const user = req.session.user;
-    if (isInvalidThreadRouteParam(req.params.id) || isInvalidThreadRouteParam(req.params.requestId)) {
-      return res.status(400).json({ ok: false, error: 'bad_request', message: 'Invalid thread URL.' });
+    if (
+      isInvalidThreadRouteParam(req.params.id) ||
+      isInvalidThreadRouteParam(req.params.requestId)
+    ) {
+      return res
+        .status(400)
+        .json({ ok: false, error: 'bad_request', message: 'Invalid thread URL.' });
     }
     const item = await itemRepo.getById(req.params.id);
     const contact = await requestRepo.getById(req.params.requestId);
@@ -1048,8 +1053,13 @@ async function contactThreadBootstrapGet(req, res, next) {
 async function contactThreadPollGet(req, res, next) {
   try {
     const user = req.session.user;
-    if (isInvalidThreadRouteParam(req.params.id) || isInvalidThreadRouteParam(req.params.requestId)) {
-      return res.status(400).json({ ok: false, error: 'bad_request', message: 'Invalid thread URL.' });
+    if (
+      isInvalidThreadRouteParam(req.params.id) ||
+      isInvalidThreadRouteParam(req.params.requestId)
+    ) {
+      return res
+        .status(400)
+        .json({ ok: false, error: 'bad_request', message: 'Invalid thread URL.' });
     }
     const item = await itemRepo.getById(req.params.id);
     const contact = await requestRepo.getById(req.params.requestId);
@@ -1133,7 +1143,13 @@ async function contactThreadMessagePost(req, res, next) {
     }
     if (contact.status !== 'approved') {
       return json
-        ? res.status(409).json({ ok: false, error: 'thread_closed', message: 'This thread is not open for messages.' })
+        ? res
+            .status(409)
+            .json({
+              ok: false,
+              error: 'thread_closed',
+              message: 'This thread is not open for messages.',
+            })
         : res.redirect(redirectUrl);
     }
 
@@ -1142,7 +1158,9 @@ async function contactThreadMessagePost(req, res, next) {
         req.uploadError.code === 'LIMIT_FILE_SIZE'
           ? 'File is too large.'
           : req.uploadError.message || 'Upload failed.';
-      return json ? res.status(400).json({ ok: false, error: 'upload', message: msg }) : res.redirect(redirectUrl);
+      return json
+        ? res.status(400).json({ ok: false, error: 'upload', message: msg })
+        : res.redirect(redirectUrl);
     }
 
     const body = sanitizeThreadMessageBody(req.body.message, 4000);
@@ -1151,7 +1169,9 @@ async function contactThreadMessagePost(req, res, next) {
       attachmentUrl = await persistThreadMessageAttachment(req);
     } catch (e) {
       if (json) {
-        return res.status(500).json({ ok: false, error: 'upload', message: e.message || 'Upload failed.' });
+        return res
+          .status(500)
+          .json({ ok: false, error: 'upload', message: e.message || 'Upload failed.' });
       }
       return next(e);
     }

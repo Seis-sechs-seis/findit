@@ -162,7 +162,8 @@ class ContactThreadMessageRepository {
     if (!Number.isFinite(rid) || !Number.isFinite(uid)) {
       return false;
     }
-    const cutoff = afterAt instanceof Date && !Number.isNaN(afterAt.getTime()) ? afterAt : new Date(0);
+    const cutoff =
+      afterAt instanceof Date && !Number.isNaN(afterAt.getTime()) ? afterAt : new Date(0);
 
     if (this.#provider() === 'supabase') {
       const supabase = getSupabaseClient();

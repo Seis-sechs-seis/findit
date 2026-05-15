@@ -27,7 +27,8 @@ function requireAuthJson(req, res, next) {
   }
   const pathOnly = String(req.originalUrl || req.url || '').split('?')[0];
   const isThreadJsonApi =
-    pathOnly.includes('/contact/') && (pathOnly.endsWith('/bootstrap') || pathOnly.endsWith('/poll'));
+    pathOnly.includes('/contact/') &&
+    (pathOnly.endsWith('/bootstrap') || pathOnly.endsWith('/poll'));
   if (isThreadJsonApi) {
     return res.status(401).json({ ok: false, error: 'auth_required' });
   }

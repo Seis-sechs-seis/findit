@@ -624,7 +624,11 @@ class ItemRepository {
   async #getRecentSupabase(limit = 6, options = {}) {
     const excludeClaimed = Boolean(options.excludeClaimed);
     const supabase = getSupabaseClient();
-    let query = supabase.from('items').select('*').order('createdAt', { ascending: false }).limit(limit);
+    let query = supabase
+      .from('items')
+      .select('*')
+      .order('createdAt', { ascending: false })
+      .limit(limit);
     if (excludeClaimed) {
       query = query.eq('status', 'active');
     }

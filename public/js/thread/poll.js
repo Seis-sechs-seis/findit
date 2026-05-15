@@ -43,7 +43,12 @@
   function formatTime(iso) {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return '';
-    return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    return d.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
   }
 
   function toIsoAttr(iso) {
@@ -58,7 +63,9 @@
   }
 
   function avatarLetter(name) {
-    const c = String(name || '').trim().charAt(0);
+    const c = String(name || '')
+      .trim()
+      .charAt(0);
     return c ? c.toUpperCase() : '?';
   }
 
@@ -167,7 +174,9 @@
     row.setAttribute('role', 'listitem');
 
     const av = document.createElement('div');
-    av.className = mine ? 'thread-discord__avatar thread-discord__avatar--mine' : 'thread-discord__avatar';
+    av.className = mine
+      ? 'thread-discord__avatar thread-discord__avatar--mine'
+      : 'thread-discord__avatar';
     if (cluster) {
       av.classList.add('thread-discord__avatar--cluster');
     }
@@ -325,7 +334,8 @@
 
       if (
         data.meta &&
-        (data.meta.contactStatus !== state.contactStatus || data.meta.itemStatus !== state.itemStatus)
+        (data.meta.contactStatus !== state.contactStatus ||
+          data.meta.itemStatus !== state.itemStatus)
       ) {
         window.location.reload();
         return;

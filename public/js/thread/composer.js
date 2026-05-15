@@ -13,7 +13,17 @@
   const errorEl = root?.querySelector('[data-thread-composer-error]');
   const ta = form?.querySelector('#thread-message');
 
-  if (!root || !form || !fileInput || !trigger || !dock || !previewImg || !previewVideo || !clearBtn || !fileNameEl) {
+  if (
+    !root ||
+    !form ||
+    !fileInput ||
+    !trigger ||
+    !dock ||
+    !previewImg ||
+    !previewVideo ||
+    !clearBtn ||
+    !fileNameEl
+  ) {
     return;
   }
 
@@ -33,7 +43,10 @@
   const submitBtn = form.querySelector('button[type="submit"]');
 
   const toastQuick = (type, message) => {
-    if (typeof window.finditFeedback !== 'undefined' && typeof window.finditFeedback.showToast === 'function') {
+    if (
+      typeof window.finditFeedback !== 'undefined' &&
+      typeof window.finditFeedback.showToast === 'function'
+    ) {
       window.finditFeedback.showToast({ type, message, duration: type === 'error' ? 4800 : 3600 });
     } else {
       window.alert(message);
@@ -367,7 +380,10 @@
       xhr.onload = () => {
         setProgressState('idle');
         const raw = xhr.responseText || '';
-        const result = handleJsonResponse({ status: xhr.status, ok: xhr.status >= 200 && xhr.status < 300 }, raw);
+        const result = handleJsonResponse(
+          { status: xhr.status, ok: xhr.status >= 200 && xhr.status < 300 },
+          raw
+        );
         if (result.auth) {
           setInFlight(false);
           return;

@@ -4,7 +4,8 @@
  */
 (function () {
   const reduceMotion = () =>
-    typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const ICONS = {
     danger: 'bi-exclamation-circle',
@@ -156,18 +157,16 @@
       return;
     }
     node.classList.add('fi-toast--leave');
-    node.addEventListener(
-      'transitionend',
-      () => node.remove(),
-      { once: true }
-    );
+    node.addEventListener('transitionend', () => node.remove(), { once: true });
     window.setTimeout(() => {
       if (node.parentNode) node.remove();
     }, 320);
   }
 
   function showToast(opts) {
-    const type = ['success', 'error', 'warning', 'info'].includes(opts && opts.type) ? opts.type : 'info';
+    const type = ['success', 'error', 'warning', 'info'].includes(opts && opts.type)
+      ? opts.type
+      : 'info';
     const message = String((opts && opts.message) || '').trim();
     if (!message) return null;
 
@@ -252,13 +251,15 @@
     return () => {
       clearTimeout(timer);
       timer = window.setTimeout(() => {
-        document.querySelectorAll('.alert[role="alert"]:not([data-fi-skip]):not([data-fi-enhanced])').forEach((el) => {
-          try {
-            enhanceAlert(el);
-          } catch (_e) {
-            /* ignore */
-          }
-        });
+        document
+          .querySelectorAll('.alert[role="alert"]:not([data-fi-skip]):not([data-fi-enhanced])')
+          .forEach((el) => {
+            try {
+              enhanceAlert(el);
+            } catch (_e) {
+              /* ignore */
+            }
+          });
       }, 40);
     };
   }

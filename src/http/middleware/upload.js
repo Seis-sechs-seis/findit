@@ -59,7 +59,8 @@ function ensureThreadMessageUploadDirSync() {
 }
 
 const canUseDiskStorage = !isVercel && !useSupabaseStorage && ensureUploadDirSync();
-const canUseItemDiskStorage = !isVercel && !useSupabaseStorage && ensureUploadDirSync() && ensureItemUploadDirSync();
+const canUseItemDiskStorage =
+  !isVercel && !useSupabaseStorage && ensureUploadDirSync() && ensureItemUploadDirSync();
 const canUseThreadMessageDiskStorage =
   !isVercel && !useSupabaseStorage && ensureUploadDirSync() && ensureThreadMessageUploadDirSync();
 
@@ -88,7 +89,16 @@ const reportItemStorage = canUseItemDiskStorage
     })
   : multer.memoryStorage();
 
-const threadMessageAllowedExt = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.mp4', '.webm', '.mov']);
+const threadMessageAllowedExt = new Set([
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.webp',
+  '.gif',
+  '.mp4',
+  '.webm',
+  '.mov',
+]);
 
 function threadMessageExtFromMime(mimetype, originalname) {
   const m = String(mimetype || '').toLowerCase();

@@ -20,8 +20,8 @@
     "lint:fix": "eslint . --fix",
     "simulate:flow": "node scripts/simulate-user-flow.js",
     "make:admin": "node scripts/make-admin.js",
-    "format": "prettier --plugin=prettier-plugin-ejs --write \"src/**/*.js\" \"tests/**/*.js\" \"public/js/**/*.js\" \"server.js\" \"run-tests.js\" \"run-db-tests.js\" \"eslint.config.cjs\" \"postcss.config.js\" \"tailwind.config.js\" \"prettier.config.cjs\" \"views/**/*.ejs\"",
-    "format:check": "prettier --plugin=prettier-plugin-ejs --check \"src/**/*.js\" \"tests/**/*.js\" \"public/js/**/*.js\" \"server.js\" \"run-tests.js\" \"run-db-tests.js\" \"eslint.config.cjs\" \"postcss.config.js\" \"tailwind.config.js\" \"prettier.config.cjs\" \"views/**/*.ejs\""
+    "format": "prettier --write \"src/**/*.js\" \"public/js/**/*.js\" \"server.js\" \"scripts/**/*.js\" \"eslint.config.cjs\" \"postcss.config.js\" \"tailwind.config.js\" \"prettier.config.cjs\"",
+    "format:check": "prettier --check \"src/**/*.js\" \"public/js/**/*.js\" \"server.js\" \"scripts/**/*.js\" \"eslint.config.cjs\" \"postcss.config.js\" \"tailwind.config.js\" \"prettier.config.cjs\""
   },
   "keywords": [
     "findit",
@@ -61,7 +61,6 @@
     "postcss": "^8.5.14",
     "prettier": "^3.8.3",
     "prettier-plugin-ejs": "^1.0.3",
-    "supertest": "^7.2.2",
     "tailwindcss": "^3.4.19"
   }
 }

@@ -32,7 +32,12 @@ router.get('/:id/edit', requireAuth, requireAdmin, itemController.editGet);
 router.post('/:id/edit', requireAuth, requireAdmin, itemController.editPost);
 router.post('/:id/delete', requireAuth, requireAdmin, itemController.deletePost);
 router.post('/:id/toggle-status', requireAuth, requireAdmin, itemController.toggleStatusPost);
-router.post('/:id/contact-request', requireAuth, contactFlowLimiter, itemController.createContactRequest);
+router.post(
+  '/:id/contact-request',
+  requireAuth,
+  contactFlowLimiter,
+  itemController.createContactRequest
+);
 router.post(
   '/:id/contact-request/:requestId/approve',
   requireAuth,
@@ -51,8 +56,17 @@ router.post(
   contactFlowLimiter,
   itemController.cancelContactRequest
 );
-router.get('/:id/contact/:requestId/bootstrap', requireAuthJson, itemController.contactThreadBootstrapGet);
-router.get('/:id/contact/:requestId/poll', requireAuthJson, threadPollLimiter, itemController.contactThreadPollGet);
+router.get(
+  '/:id/contact/:requestId/bootstrap',
+  requireAuthJson,
+  itemController.contactThreadBootstrapGet
+);
+router.get(
+  '/:id/contact/:requestId/poll',
+  requireAuthJson,
+  threadPollLimiter,
+  itemController.contactThreadPollGet
+);
 router.get('/:id/contact/:requestId', requireAuth, itemController.contactThreadGet);
 router.post(
   '/:id/contact/:requestId/message',
@@ -81,7 +95,12 @@ router.post(
   contactFlowLimiter,
   itemController.contactThreadReopenPost
 );
-router.post('/:id/claim-as-owner', requireAuth, contactFlowLimiter, itemController.claimAsOwnerPost);
+router.post(
+  '/:id/claim-as-owner',
+  requireAuth,
+  contactFlowLimiter,
+  itemController.claimAsOwnerPost
+);
 router.get('/:id', itemController.detail);
 
 module.exports = router;

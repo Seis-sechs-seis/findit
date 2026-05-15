@@ -36,7 +36,12 @@ async function postForm(url, bodyObj) {
     body,
   });
   const text = await stream.text();
-  return { ok: statusCode >= 200 && statusCode < 300, status: statusCode, json: tryJson(text), text };
+  return {
+    ok: statusCode >= 200 && statusCode < 300,
+    status: statusCode,
+    json: tryJson(text),
+    text,
+  };
 }
 
 /**

@@ -44,10 +44,12 @@ class ContactRequestReadStateRepository {
     if (this.#provider() === 'supabase') {
       const supabase = getSupabaseClient();
       const now = new Date().toISOString();
-      const { error } = await supabase.from('contact_request_read_state').upsert(
-        { requestId: rid, userId: uid, lastSeenAt: now },
-        { onConflict: 'requestId,userId' }
-      );
+      const { error } = await supabase
+        .from('contact_request_read_state')
+        .upsert(
+          { requestId: rid, userId: uid, lastSeenAt: now },
+          { onConflict: 'requestId,userId' }
+        );
       if (error) {
         throw error;
       }

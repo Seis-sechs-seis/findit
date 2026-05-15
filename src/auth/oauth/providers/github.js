@@ -33,7 +33,8 @@ module.exports = {
       code_verifier: codeVerifier,
     });
     if (!ok || !json || json.error) {
-      const msg = (json && (json.error_description || json.error)) || 'GitHub token exchange failed';
+      const msg =
+        (json && (json.error_description || json.error)) || 'GitHub token exchange failed';
       return { error: String(msg) };
     }
     const accessToken = json.access_token;

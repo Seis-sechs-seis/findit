@@ -3,7 +3,11 @@
 const { UserRepository } = require('../../db/models/User');
 const { isDisposableEmail, normalizeEmail } = require('../../utils/email');
 const { newPkcePair } = require('../../auth/oauth/pkce');
-const { stashOAuthStart, consumeOAuthSession, clearOAuthSession } = require('../../auth/oauth/state');
+const {
+  stashOAuthStart,
+  consumeOAuthSession,
+  clearOAuthSession,
+} = require('../../auth/oauth/state');
 const { getProvider } = require('../../auth/oauth/registry');
 const { clientConfig, completeOAuthLogin } = require('../../auth/oauth/flow');
 const { getOAuthRuntimeConfig } = require('../../auth/oauth/env');
@@ -30,7 +34,10 @@ function start(req, res) {
   }
   const rt = getOAuthRuntimeConfig();
   if (!rt.siteUrl) {
-    flashOAuthError(req, 'Set SITE_URL (or OAUTH_SITE_URL for OAuth only) so redirect_uri matches your GitHub app.');
+    flashOAuthError(
+      req,
+      'Set SITE_URL (or OAUTH_SITE_URL for OAuth only) so redirect_uri matches your GitHub app.'
+    );
     return res.redirect('/login');
   }
   const cfg = clientConfig(providerId);

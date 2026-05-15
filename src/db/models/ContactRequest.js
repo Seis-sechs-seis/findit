@@ -32,7 +32,12 @@ function mapRow(row) {
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     resolvedAt: row.resolvedAt || null,
-    threadTimelineJson: typeof rawTl === 'string' ? rawTl : rawTl != null ? JSON.stringify(threadTimelineEvents) : null,
+    threadTimelineJson:
+      typeof rawTl === 'string'
+        ? rawTl
+        : rawTl != null
+          ? JSON.stringify(threadTimelineEvents)
+          : null,
     threadTimelineEvents,
   };
 }

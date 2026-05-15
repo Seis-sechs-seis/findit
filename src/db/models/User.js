@@ -589,8 +589,12 @@ class UserRepository {
    * @returns {{ success: true, user: object } | { success: false, errors: string[] }}
    */
   async updateProfileNames(userId, { firstName, lastName }) {
-    const fn = String(firstName || '').trim().slice(0, 100);
-    const ln = String(lastName || '').trim().slice(0, 100);
+    const fn = String(firstName || '')
+      .trim()
+      .slice(0, 100);
+    const ln = String(lastName || '')
+      .trim()
+      .slice(0, 100);
     const errors = [];
     if (fn.length < 1) {
       errors.push('First name is required.');
@@ -769,7 +773,9 @@ class UserRepository {
   }
 
   async findByOAuth(provider, subject) {
-    const p = String(provider || '').trim().toLowerCase();
+    const p = String(provider || '')
+      .trim()
+      .toLowerCase();
     const s = String(subject || '').trim();
     if (!p || !s) {
       return null;
@@ -799,10 +805,22 @@ class UserRepository {
    * Create or load user for OAuth (email verified by IdP). Rejects disposable emails.
    * @returns {{ success: true, user: object } | { success: false, errors: string[] }}
    */
-  async signInWithOAuthProfile({ email, firstName, lastName, provider, subject, profileImageUrl, createdIp }) {
-    const p = String(provider || '').trim().toLowerCase();
+  async signInWithOAuthProfile({
+    email,
+    firstName,
+    lastName,
+    provider,
+    subject,
+    profileImageUrl,
+    createdIp,
+  }) {
+    const p = String(provider || '')
+      .trim()
+      .toLowerCase();
     const s = String(subject || '').trim();
-    const em = String(email || '').trim().toLowerCase();
+    const em = String(email || '')
+      .trim()
+      .toLowerCase();
     const norm = normalizeEmail(em);
     if (!p || !s || !norm) {
       return { success: false, errors: ['Invalid OAuth profile.'] };
@@ -884,7 +902,10 @@ class UserRepository {
     profileImageUrl,
     createdIp,
   }) {
-    const passwordHash = await bcrypt.hash(crypto.randomBytes(48).toString('base64url'), SALT_ROUNDS);
+    const passwordHash = await bcrypt.hash(
+      crypto.randomBytes(48).toString('base64url'),
+      SALT_ROUNDS
+    );
     let role = resolveRole(undefined, email);
     if (role !== ROLE_ADMIN && (await isFirstUser('mysql'))) {
       role = ROLE_ADMIN;
@@ -898,8 +919,12 @@ class UserRepository {
           createdIp, profileImageUrl
         ) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, NULL, NULL, NULL, 0, ?, ?)`,
         [
-          String(firstName || 'Member').slice(0, 100).trim(),
-          String(lastName || 'User').slice(0, 100).trim(),
+          String(firstName || 'Member')
+            .slice(0, 100)
+            .trim(),
+          String(lastName || 'User')
+            .slice(0, 100)
+            .trim(),
           email,
           normalizedEmail,
           passwordHash,
@@ -953,7 +978,10 @@ class UserRepository {
     profileImageUrl,
     createdIp,
   }) {
-    const passwordHash = await bcrypt.hash(crypto.randomBytes(48).toString('base64url'), SALT_ROUNDS);
+    const passwordHash = await bcrypt.hash(
+      crypto.randomBytes(48).toString('base64url'),
+      SALT_ROUNDS
+    );
     let role = resolveRole(undefined, email);
     if (role !== ROLE_ADMIN && (await isFirstUser('supabase'))) {
       role = ROLE_ADMIN;
@@ -962,8 +990,12 @@ class UserRepository {
     const { data, error } = await supabase
       .from('users')
       .insert({
-        firstName: String(firstName || 'Member').slice(0, 100).trim(),
-        lastName: String(lastName || 'User').slice(0, 100).trim(),
+        firstName: String(firstName || 'Member')
+          .slice(0, 100)
+          .trim(),
+        lastName: String(lastName || 'User')
+          .slice(0, 100)
+          .trim(),
         email,
         normalizedEmail,
         passwordHash,
@@ -981,7 +1013,10 @@ class UserRepository {
       .select('id, firstName, lastName, email, role, profileImageUrl')
       .single();
     if (error) {
-      if (String(error.code || '') === '23505' || /duplicate|unique/i.test(String(error.message || ''))) {
+      if (
+        String(error.code || '') === '23505' ||
+        /duplicate|unique/i.test(String(error.message || ''))
+      ) {
         const row = await this.findByOAuth(provider, subject);
         if (row) {
           return {

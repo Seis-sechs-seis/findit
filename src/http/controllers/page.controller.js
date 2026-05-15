@@ -82,7 +82,9 @@ async function requestsInbox(req, res, next) {
     const countClosedTab = rowsAll.filter((row) => inClosedTab(row.request.status)).length;
 
     const rows = rowsAll.filter((row) =>
-      requestsView === 'closed' ? inClosedTab(row.request.status) : inApprovedTab(row.request.status)
+      requestsView === 'closed'
+        ? inClosedTab(row.request.status)
+        : inApprovedTab(row.request.status)
     );
 
     res.render('requests-inbox', {
@@ -205,10 +207,7 @@ async function postSettings(req, res, next) {
   try {
     const userId = req.session.user.id;
     const renderSettings = async (status, { errors, success, profileOverride }) => {
-      const profile =
-        profileOverride ||
-        (await userRepo.findById(userId)) ||
-        req.session.user;
+      const profile = profileOverride || (await userRepo.findById(userId)) || req.session.user;
       const payload = {
         title: 'Settings',
         errors: errors || [],
@@ -263,8 +262,7 @@ async function postSettings(req, res, next) {
           profileOverride: profile,
         });
       }
-      const oldProfileImageUrl =
-        profile && profile.profileImageUrl ? profile.profileImageUrl : '';
+      const oldProfileImageUrl = profile && profile.profileImageUrl ? profile.profileImageUrl : '';
       let profileImageUrl = '';
       const localAvatarName =
         req.file.filename || (req.file.path && path.basename(req.file.path)) || '';
