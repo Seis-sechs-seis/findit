@@ -1,0 +1,110 @@
+<section class="py-10 sm:py-14 bg-page min-h-screen">
+  <div class="gutter max-w-4xl mx-auto">
+    <div class="card-surface legal-hero">
+      <span class="legal-hero__eyebrow">legal</span>
+      <h1 class="title mb-2">Terms of Service</h1>
+      <p class="text-secondary text-sm mb-0">Please read these terms carefully before using FindIt services.</p>
+      <p class="text-xs text-muted-custom mt-3 mb-0">Last updated: <%= updatedAt %></p>
+    </div>
+
+    <div class="card-surface legal-body">
+      <h2>1. acceptance of terms</h2>
+      <p>
+        By accessing or using FindIt, you agree to these Terms of Service and our Privacy Policy. If you do not agree,
+        do not use the platform.
+      </p>
+
+      <h2>2. eligibility and accounts</h2>
+      <p>
+        You are responsible for the accuracy of your account information and for maintaining account security. You must
+        not share your account credentials.
+      </p>
+
+      <h2>3. user content and reports</h2>
+      <p>
+        You are responsible for content you submit, including report details, verification prompts, and contact
+        information. Content must be lawful, accurate, and not misleading.
+      </p>
+
+      <h2>4. prohibited use</h2>
+      <ul>
+        <li>posting false, fraudulent, or malicious reports</li>
+        <li>impersonating another person or organization</li>
+        <li>attempting unauthorized access or disrupting service</li>
+        <li>using data from the platform for harassment or spam</li>
+      </ul>
+
+      <h2>5. verification and recovery workflow</h2>
+      <p>
+        FindIt provides tools to help users verify ownership. We do not guarantee successful recovery or identity
+        accuracy between parties.
+      </p>
+
+      <h2>6. moderation and enforcement</h2>
+      <p>
+        We may remove content, restrict access, or suspend accounts that violate these terms or pose safety risks to the
+        community.
+      </p>
+
+      <h2>7. limitation of liability</h2>
+      <p>
+        FindIt is provided on an “as is” basis. To the maximum extent permitted by law, we are not liable for indirect,
+        incidental, or consequential damages resulting from platform use.
+      </p>
+
+      <h2>8. changes to these terms</h2>
+      <p>
+        We may update these terms from time to time. Continued use after updates means you accept the revised terms.
+      </p>
+
+      <h2>9. contact</h2>
+      <p>For legal concerns, contact the platform administrators through your official support channels.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .legal-hero,
+  .legal-body {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.1rem 1.2rem;
+  }
+  .legal-hero {
+    margin-bottom: 12px;
+  }
+  .legal-hero__eyebrow {
+    display: inline-flex;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--primary);
+    margin-bottom: 0.45rem;
+  }
+  .legal-body h2 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 0.45rem;
+    text-transform: capitalize;
+  }
+  .legal-body p,
+  .legal-body li {
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+  .legal-body ul {
+    margin: 0 0 0.9rem;
+    padding-left: 1rem;
+    display: grid;
+    gap: 0.2rem;
+  }
+  .legal-body h2 + p {
+    margin-top: 0;
+  }
+  .legal-body p {
+    margin: 0 0 0.95rem;
+  }
+</style>

@@ -1,0 +1,295 @@
+<section class="auth-shell">
+  <div class="auth-shell__layout">
+    <aside class="auth-showcase" aria-hidden="false">
+      <a href="/" class="auth-showcase__brand">
+        <img
+          src="/images/ic_transparent.png"
+          alt=""
+          width="32"
+          height="32"
+          class="h-8 w-8 shrink-0 object-contain"
+          decoding="async"
+        />
+        <span class="auth-showcase__brand-text"><%= appName %></span>
+      </a>
+      <h1>Good to see you<br />again <span style="font-size: 1.75rem">&#x1F44B;</span></h1>
+      <p>Welcome back! Please enter your details to log in.</p>
+    </aside>
+
+    <div class="auth-panel">
+      <div class="auth-panel__card">
+        <h2 class="text-lg font-bold text-main mb-0.5">Log in</h2>
+        <p class="text-sm text-secondary mb-3">Enter your credentials to continue.</p>
+
+        <% if (typeof oauthErrors !== 'undefined' && oauthErrors.length) { %>
+        <div class="alert alert-danger mb-3" role="alert">
+          <p class="fi-notice__lead text-sm font-semibold">Sign-in couldn't complete</p>
+          <ul class="fi-notice__list text-xs">
+            <% oauthErrors.forEach((msg) => { %>
+            <li><%= msg %></li>
+            <% }) %>
+          </ul>
+        </div>
+        <% } %>
+
+        <form method="POST" action="/login" novalidate class="space-y-3" data-auth-form>
+          <input type="hidden" name="next" value="<%= typeof nextUrl !== 'undefined' ? nextUrl : '/' %>" />
+          <div class="visually-hidden" aria-hidden="true">
+            <label for="auth_hp_login">Leave blank</label>
+            <input
+              type="text"
+              name="_hp_mi"
+              id="auth_hp_login"
+              tabindex="-1"
+              autocomplete="off"
+              aria-hidden="true"
+              inputmode="none"
+            />
+          </div>
+
+          <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+          <div class="alert alert-danger" role="alert" data-auth-server-errors>
+            <p class="fi-notice__lead text-sm font-semibold">Fix these:</p>
+            <ul class="fi-notice__list text-xs">
+              <% errors.forEach(err => { %>
+              <li><%= err %></li>
+              <% }) %>
+            </ul>
+          </div>
+          <% } %>
+          <div class="alert alert-danger d-none" role="alert" data-auth-client-errors hidden></div>
+
+          <div class="field">
+            <label for="email" class="field-label">Email</label>
+            <input
+              type="email"
+              class="field-input"
+              id="email"
+              name="email"
+              placeholder="you@example.com"
+              value="<%= formData.email || '' %>"
+              required
+              autocomplete="email"
+              data-validate="email"
+            />
+            <div class="invalid-feedback">Please enter a valid email address.</div>
+          </div>
+
+          <div class="field">
+            <div class="flex items-center justify-between">
+              <label for="password" class="field-label">Password</label>
+              <a href="/forgot-password" class="text-xs text-primary text-decoration-none hover:opacity-70"
+                >Forgot password?</a
+              >
+            </div>
+            <div class="relative">
+              <input
+                type="password"
+                class="field-input"
+                id="password"
+                name="password"
+                placeholder="Your password"
+                value="<%= formData.password || '' %>"
+                required
+                autocomplete="current-password"
+                data-validate="password"
+              />
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-custom hover:text-main"
+                data-toggle-password="#password"
+                aria-label="Show password"
+                style="background: transparent; border: none; cursor: pointer"
+              >
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            <div class="invalid-feedback">Password is required.</div>
+          </div>
+
+          <% if (typeof requiresChallenge !== 'undefined' && requiresChallenge) { %>
+          <div class="field">
+            <label for="challengeAnswer" class="field-label">Security Check</label>
+            <div class="text-xs mb-1 text-secondary"><%= challengePrompt %></div>
+            <input
+              type="text"
+              class="field-input"
+              id="challengeAnswer"
+              name="challengeAnswer"
+              placeholder="Your answer"
+              required
+              autocomplete="off"
+              data-validate="required"
+            />
+            <div class="invalid-feedback">Please answer the security check.</div>
+          </div>
+          <% } %>
+
+          <button type="submit" class="btn btn-primary w-full" data-loading-text="Logging in...">Login</button>
+        </form>
+
+        <%- include('partials/oauth-buttons') %>
+
+        <p class="text-center text-xs mt-3 text-secondary">
+          Don't have an account?
+          <a href="/register" class="text-decoration-none text-primary font-medium hover:opacity-70">Sign up</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  (() => {
+    const form = document.querySelector("[data-auth-form]");
+    if (!form) return;
+    const toggleBtns = form.querySelectorAll("[data-toggle-password]");
+    toggleBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = form.querySelector(btn.getAttribute("data-toggle-password"));
+        if (!target) return;
+        const nextType = target.type === "password" ? "text" : "password";
+        target.type = nextType;
+        btn.innerHTML = nextType === "password" ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+      });
+    });
+    const clientBanner = form.querySelector("[data-auth-client-errors]");
+    const renderErrorBanner = (target, messages) => {
+      if (!target) return;
+      if (window.finditFeedback && typeof window.finditFeedback.resetEnhancement === 'function') {
+        window.finditFeedback.resetEnhancement(target);
+      }
+      const safeMessages =
+        Array.isArray(messages) && messages.length ? messages : ["Please correct the highlighted fields."];
+      target.innerHTML =
+        '<p class="fi-notice__lead text-sm font-semibold">Fix these:</p>' +
+        '<ul class="fi-notice__list text-xs">' +
+        safeMessages.map((m) => "<li>" + m + "</li>").join("") +
+        "</ul>";
+      target.classList.remove("d-none");
+      target.removeAttribute("hidden");
+      if (window.finditFeedback && typeof window.finditFeedback.enhanceAlert === "function") {
+        window.finditFeedback.enhanceAlert(target);
+      }
+    };
+    const hideClientBanner = () => {
+      if (!clientBanner) return;
+      if (window.finditFeedback && typeof window.finditFeedback.resetEnhancement === 'function') {
+        window.finditFeedback.resetEnhancement(clientBanner);
+      }
+      clientBanner.classList.add("d-none");
+      clientBanner.setAttribute("hidden", "");
+      clientBanner.innerHTML = "";
+    };
+    const inputs = form.querySelectorAll("[data-validate]");
+    const touched = new WeakSet();
+    let hasSubmitted = false;
+    const getInputValidity = (input) => {
+      const kind = input.getAttribute("data-validate");
+      const trimmed = String(input.value || "").trim();
+      let ok = true;
+      if (kind === "email") ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+      else if (kind === "password") ok = trimmed.length > 0;
+      else ok = trimmed.length > 0;
+      return { ok, trimmed };
+    };
+    const validateInput = (input, opts = {}) => {
+      const { showInvalid = true, showValid = true } = opts;
+      const { ok, trimmed } = getInputValidity(input);
+      const field = input.closest(".field");
+      input.classList.remove("is-auth-mismatch");
+      if (field) field.classList.remove("field-auth-mismatch");
+      if (showInvalid) input.classList.toggle("is-invalid", !ok);
+      else input.classList.remove("is-invalid");
+      if (showValid) input.classList.toggle("is-valid", ok && trimmed.length > 0);
+      else input.classList.remove("is-valid");
+      if (field) field.classList.toggle("field-invalid", showInvalid && !ok);
+      return ok;
+    };
+    const allInputsValid = () => {
+      let a = true;
+      inputs.forEach((el) => {
+        if (!getInputValidity(el).ok) a = false;
+      });
+      return a;
+    };
+    const applyInitialValidationState = () => {
+      inputs.forEach((input) => validateInput(input, { showInvalid: false, showValid: false }));
+    };
+    const applyServerAuthErrorState = () => {
+      const serverErrorItems = form.querySelectorAll("[data-auth-server-errors] li");
+      const normalizedErrors = Array.from(serverErrorItems).map((item) =>
+        String(item?.textContent || "")
+          .trim()
+          .toLowerCase()
+      );
+      const markInvalid = (id, opts = {}) => {
+        const { showMessage = true } = opts;
+        const input = form.querySelector("#" + id);
+        if (!input) return;
+        const field = input.closest(".field");
+        touched.add(input);
+        input.classList.add("is-invalid");
+        input.classList.remove("is-valid");
+        if (showMessage) {
+          input.classList.remove("is-auth-mismatch");
+          if (field) {
+            field.classList.toggle("field-invalid", true);
+            field.classList.remove("field-auth-mismatch");
+          }
+        } else {
+          input.classList.add("is-auth-mismatch");
+          if (field) {
+            field.classList.remove("field-invalid");
+            field.classList.add("field-auth-mismatch");
+          }
+        }
+      };
+      if (normalizedErrors.includes("invalid email or password.")) {
+        /* auth mismatch should highlight fields only (no "required/format" helper copy) */
+        markInvalid("email", { showMessage: false });
+        markInvalid("password", { showMessage: false });
+      }
+      if (normalizedErrors.includes("password is required.")) markInvalid("password");
+    };
+    inputs.forEach((input) => {
+      input.addEventListener("input", () => {
+        const shouldShowInvalid = hasSubmitted || touched.has(input) || input.classList.contains("is-invalid");
+        validateInput(input, { showInvalid: shouldShowInvalid, showValid: true });
+        if (allInputsValid()) hideClientBanner();
+      });
+      input.addEventListener("blur", () => {
+        touched.add(input);
+        validateInput(input, { showInvalid: true, showValid: true });
+      });
+    });
+    form.addEventListener("submit", (event) => {
+      hasSubmitted = true;
+      const messages = [];
+      let allValid = true;
+      inputs.forEach((input) => {
+        touched.add(input);
+        if (!validateInput(input, { showInvalid: true, showValid: true })) {
+          allValid = false;
+          const field = input.closest(".field");
+          const hint = field?.querySelector(".invalid-feedback");
+          const text = hint?.textContent?.trim() || "";
+          if (text && !messages.includes(text)) messages.push(text);
+        }
+      });
+      if (!allValid) {
+        event.preventDefault();
+        renderErrorBanner(clientBanner, messages);
+        return;
+      }
+      hideClientBanner();
+      const submitBtn = form.querySelector("[data-loading-text]");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = submitBtn.getAttribute("data-loading-text") || "Submitting...";
+      }
+    });
+    applyInitialValidationState();
+    applyServerAuthErrorState();
+  })();
+</script>

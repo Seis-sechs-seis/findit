@@ -1,0 +1,67 @@
+[
+  {
+    "id": "a1b2c3d4-0001-4000-8000-000000000001",
+    "title": "Black Leather Wallet",
+    "description": "Hi po, naiwan ko yung black leather wallet ko around cafeteria 2nd floor after lunch. May student ID at konting cash inside, tapos may initials na 'JB' sa harap.",
+    "category": "Bags & Wallets",
+    "location": "Main Cafeteria, 2nd Floor",
+    "date": "2026-03-10",
+    "type": "lost",
+    "status": "active",
+    "contactName": "John Balbuena",
+    "contactEmail": "john.b@my.cspc.edu.ph",
+    "createdAt": "2026-03-10T08:30:00.000Z"
+  },
+  {
+    "id": "a1b2c3d4-0002-4000-8000-000000000002",
+    "title": "Blue Hydroflask Water Bottle",
+    "description": "Saw this blue Hydroflask sa bench near library entrance around 10am. May stickers pa, looks like someone forgot it after class.",
+    "category": "Other",
+    "location": "University Library Entrance",
+    "date": "2026-03-11",
+    "type": "found",
+    "status": "active",
+    "contactName": "Vince Bazar",
+    "contactEmail": "vince.b@my.cspc.edu.ph",
+    "createdAt": "2026-03-11T10:15:00.000Z"
+  },
+  {
+    "id": "a1b2c3d4-0003-4000-8000-000000000003",
+    "title": "Silver MacBook Charger",
+    "description": "This is to report a found item: one silver Apple MacBook charger (USB-C, 67W), recovered in IT Building Room 301 after the afternoon session.",
+    "category": "Electronics",
+    "location": "IT Building, Room 301",
+    "date": "2026-03-12",
+    "type": "found",
+    "status": "active",
+    "contactName": "Christian Obrero",
+    "contactEmail": "christian.o@my.cspc.edu.ph",
+    "createdAt": "2026-03-12T14:45:00.000Z"
+  },
+  {
+    "id": "a1b2c3d4-0004-4000-8000-000000000004",
+    "title": "Set of Honda Car Keys",
+    "description": "Help huhu, nawala yung Honda car keys ko sa Parking Lot B. Naka-Honda keychain siya and may maliit na flashlight na nakasabit.",
+    "category": "Keys",
+    "location": "Parking Lot B",
+    "date": "2026-03-13",
+    "type": "lost",
+    "status": "active",
+    "contactName": "Lee Ivan Sahurda",
+    "contactEmail": "lee.s@my.cspc.edu.ph",
+    "createdAt": "2026-03-13T07:20:00.000Z"
+  },
+  {
+    "id": "a1b2c3d4-0005-4000-8000-000000000005",
+    "title": "Red Notebook with Notes",
+    "description": "Good day. I found a red spiral notebook with handwritten Computer Science notes in Lecture Hall A. Walang name sa cover, but mukhang important yung laman.",
+    "category": "Books & Stationery",
+    "location": "Science Building, Lecture Hall A",
+    "date": "2026-03-14",
+    "type": "found",
+    "status": "claimed",
+    "contactName": "John Paul Caigas",
+    "contactEmail": "jp.c@my.cspc.edu.ph",
+    "createdAt": "2026-03-14T16:00:00.000Z"
+  }
+]

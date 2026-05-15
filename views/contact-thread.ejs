@@ -1,0 +1,410 @@
+<% const requesterName = participants[String(contact.requesterUserId)] || 'Member';
+const galleryImages = (Array.isArray(item.imageUrls) && item.imageUrls.length ? item.imageUrls : [item.imageUrl]).filter(Boolean);
+const threadThumbUrl = galleryImages[0] || '/images/hero-bg.jpg';
+%>
+<section
+  class="thread-discord-page flex min-h-0 flex-1 flex-col overflow-hidden bg-page"
+  id="contact-thread-root"
+>
+  <div
+    class="thread-discord-page__inner gutter flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-4 max-lg:gap-2 overflow-hidden"
+  >
+    <div class="contact-thread-layout min-h-0 min-w-0 flex-1">
+      <!-- Left: listing + request meta (report-style) -->
+      <aside class="thread-discord-side" role="complementary" aria-label="Listing and request">
+        <div class="card-surface thread-discord-side__card relative rounded-2xl border border-base p-3 sm:p-4">
+          <a
+            href="/items/<%= item.id %>"
+            class="thread-discord-side__listing-btn btn btn-outline btn-sm"
+            aria-label="View listing"
+          >
+            <i class="bi bi-box-arrow-up-right text-base leading-none" aria-hidden="true"></i>
+          </a>
+          <div class="thread-discord-side__body flex gap-3 pe-10 sm:pe-11">
+            <a
+              href="/items/<%= item.id %>"
+              class="thread-discord-side__thumb relative shrink-0 overflow-hidden rounded-xl border border-base bg-surface-2"
+              aria-label="View listing photo"
+            >
+              <% if (item.emptyImagePlaceholder && item.placeholderImageDark) { %>
+              <img
+                src="<%= threadThumbUrl %>"
+                alt=""
+                width="80"
+                height="80"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                class="thread-discord-side__thumb-img h-full w-full object-cover dark:hidden"
+                onerror="this.onerror=null;this.src='/images/hero-bg.jpg';"
+              />
+              <img
+                src="<%= item.placeholderImageDark %>"
+                alt=""
+                width="80"
+                height="80"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                class="thread-discord-side__thumb-img pointer-events-none absolute inset-0 hidden h-full w-full object-cover dark:block"
+                onerror="this.onerror=null;this.src='/images/hero-bg.jpg';"
+              />
+              <% } else { %>
+              <img
+                src="<%= threadThumbUrl %>"
+                alt=""
+                width="80"
+                height="80"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                class="thread-discord-side__thumb-img h-full w-full object-cover"
+                onerror="this.onerror=null;this.src='/images/hero-bg.jpg';"
+              />
+              <% } %>
+            </a>
+            <div class="min-w-0 flex-1">
+              <div class="mb-1 flex flex-wrap items-center gap-2">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-secondary">Contact request</span>
+                <span class="thread-discord-side__req rounded-md border border-base bg-surface-2 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-main"
+                  >#<%= contact.id %></span
+                >
+              </div>
+              <h1 class="thread-discord-side__title mb-1 line-clamp-2 text-base font-bold leading-snug text-main sm:text-lg">
+                <%= item.title %>
+              </h1>
+              <p class="thread-discord-side__opened mb-0 text-xs text-secondary">
+                Opened by <strong class="font-semibold text-main"><%= requesterName %></strong>
+              </p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right: chat shell -->
+      <div class="thread-discord-main-col">
+        <button
+          type="button"
+          class="thread-discord-pane-splitter"
+          data-thread-pane-splitter
+          aria-label="Resize space for listing above chat. Double-click or double-tap to reset."
+        >
+          <span class="thread-discord-pane-splitter__grip" aria-hidden="true"></span>
+        </button>
+        <div
+          class="thread-discord-surface min-h-0 flex-1 overflow-hidden rounded-2xl border border-base bg-surface shadow-theme-sm<%= canPost ? ' thread-discord-surface--with-composer' : '' %>"
+        >
+      <!-- Scrollable feed -->
+      <div
+        class="thread-discord__feed scrollbar-thread thread-discord__feed--scroll"
+        data-thread-scroller
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+      >
+        <div class="thread-discord__messages" role="list" data-thread-message-list>
+          <%- typeof threadFeedHtml === 'string' ? threadFeedHtml : '' %>
+        </div>
+      </div>
+
+      <% if (typeof threadPollConfig !== 'undefined' && threadPollConfig) { %>
+      <script type="application/json" id="contact-thread-poll-config">
+<%- JSON.stringify(threadPollConfig).replace(/</g, '\\u003c') %>
+      </script>
+      <script src="/js/thread/poll.js" defer></script>
+      <% } %>
+
+      <!-- Toolbar: actions -->
+      <div class="thread-discord-toolbar border-t-base flex shrink-0 flex-col gap-2 border-t bg-surface px-2 py-2 sm:flex-row sm:flex-wrap sm:items-center sm:px-3">
+        <% if (contact.status === 'pending') { %>
+          <% if (isOwner) { %>
+          <div class="flex w-full gap-2 sm:w-auto">
+            <form
+              method="POST"
+              action="/items/<%= item.id %>/contact-request/<%= contact.id %>/approve"
+              class="mb-0 min-w-0 flex-1 sm:flex-initial"
+            >
+              <button type="submit" class="btn btn-success btn-sm thread-toolbar__approve w-full sm:w-auto">
+                <i class="bi bi-check-lg me-1" aria-hidden="true"></i>Approve
+              </button>
+            </form>
+            <form
+              method="POST"
+              action="/items/<%= item.id %>/contact-request/<%= contact.id %>/reject"
+              class="mb-0 min-w-0 flex-1 sm:flex-initial"
+            >
+              <button
+                type="submit"
+                class="btn btn-outline btn-sm w-full sm:w-auto"
+                style="border-color: rgba(239, 68, 68, 0.45); color: #b91c1c"
+                onclick="return confirm('Reject this contact request?');"
+              >
+                <i class="bi bi-x-lg me-1" aria-hidden="true"></i>Reject
+              </button>
+            </form>
+          </div>
+          <% } else if (isRequester) { %>
+          <form
+            method="POST"
+            action="/items/<%= item.id %>/contact-request/<%= contact.id %>/cancel"
+            class="mb-0 w-full sm:w-auto"
+          >
+            <button
+              type="submit"
+              class="btn btn-outline btn-sm w-full sm:w-auto"
+              onclick="return confirm('Cancel this request?');"
+            >
+              <i class="bi bi-slash-circle me-1" aria-hidden="true"></i>Cancel
+            </button>
+          </form>
+          <% } %>
+        <% } %>
+
+        <%
+        const showThreadEndChat = threadOpen;
+        const showThreadClaimed =
+          isOwner && item.status !== 'claimed' && contact.status === 'approved';
+        const threadEndClaimPair = showThreadEndChat && showThreadClaimed;
+        %>
+        <% if (showThreadEndChat || showThreadClaimed) { %>
+        <% if (threadEndClaimPair) { %>
+        <div
+          class="thread-toolbar-end-claim grid w-full min-w-0 grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center sm:gap-3"
+        >
+          <div class="min-w-0 order-1 sm:order-1 sm:shrink-0">
+            <form method="POST" action="/items/<%= item.id %>/contact/<%= contact.id %>/close" class="mb-0 w-full sm:w-auto">
+              <button
+                type="submit"
+                class="btn btn-danger btn-sm inline-flex w-full items-center justify-center gap-0 sm:w-auto sm:gap-1.5"
+                title="This chat only — does not change the listing or mark it claimed."
+                onclick="return confirm('End only this chat thread?\n\nThe item listing is unchanged — marking claimed is a separate step. You can still read this history, but new messages stop here. Use this if the chat feels suspicious.');"
+              >
+                <i class="bi bi-stop-circle text-base leading-none sm:text-[0.75rem]" aria-hidden="true"></i>
+                <span class="hidden sm:inline">End</span>
+                <span class="sm:hidden visually-hidden">End</span>
+              </button>
+            </form>
+          </div>
+          <div class="min-w-0 order-2 sm:order-3 sm:shrink-0">
+            <form method="POST" action="/items/<%= item.id %>/claim-as-owner" class="mb-0 w-full sm:w-auto">
+              <input type="hidden" name="next" value="/items/<%= item.id %>/contact/<%= contact.id %>" />
+              <button
+                type="submit"
+                class="btn btn-primary btn-sm inline-flex w-full items-center justify-center gap-0 sm:w-auto sm:gap-1.5"
+                title="Mark this listing as claimed"
+                onclick="return confirm('Mark this listing as claimed?');"
+              >
+                <i class="bi bi-patch-check text-base leading-none sm:text-[0.75rem]" aria-hidden="true"></i>
+                <span class="hidden sm:inline">Claimed</span>
+                <span class="sm:hidden visually-hidden">Mark listing as claimed</span>
+              </button>
+            </form>
+          </div>
+          <p
+            class="thread-discord-toolbar__hint thread-discord-toolbar__hint--between col-span-2 mb-0 order-3 text-center text-xs text-secondary sm:order-2 sm:col-span-1 sm:flex-1 sm:min-w-0 sm:self-center sm:px-2"
+          >
+            Only this thread — listing unchanged.
+          </p>
+        </div>
+        <% } else { %>
+        <div class="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          <% if (showThreadEndChat) { %>
+          <div class="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:w-auto">
+            <form method="POST" action="/items/<%= item.id %>/contact/<%= contact.id %>/close" class="mb-0 w-full sm:w-auto">
+              <button
+                type="submit"
+                class="btn btn-danger btn-sm inline-flex w-full items-center justify-center gap-0 sm:w-auto sm:gap-1.5"
+                title="This chat only — does not change the listing or mark it claimed."
+                onclick="return confirm('End only this chat thread?\n\nThe item listing is unchanged — marking claimed is a separate step. You can still read this history, but new messages stop here. Use this if the chat feels suspicious.');"
+              >
+                <i class="bi bi-stop-circle text-base leading-none sm:text-[0.75rem]" aria-hidden="true"></i>
+                <span class="hidden sm:inline">End</span>
+                <span class="sm:hidden visually-hidden">End</span>
+              </button>
+            </form>
+            <p class="thread-discord-toolbar__hint mb-0 hidden text-xs text-secondary sm:block">
+              Only this thread — listing unchanged.
+            </p>
+          </div>
+          <% } %>
+          <% if (showThreadClaimed) { %>
+          <div class="min-w-0 w-full sm:ml-auto sm:w-auto">
+            <form method="POST" action="/items/<%= item.id %>/claim-as-owner" class="mb-0 w-full sm:w-auto">
+              <input type="hidden" name="next" value="/items/<%= item.id %>/contact/<%= contact.id %>" />
+              <button
+                type="submit"
+                class="btn btn-primary btn-sm inline-flex w-full items-center justify-center gap-0 sm:w-auto sm:gap-1.5"
+                title="Mark this listing as claimed"
+                onclick="return confirm('Mark this listing as claimed?');"
+              >
+                <i class="bi bi-patch-check text-base leading-none sm:text-[0.75rem]" aria-hidden="true"></i>
+                <span class="hidden sm:inline">Claimed</span>
+                <span class="sm:hidden visually-hidden">Mark listing as claimed</span>
+              </button>
+            </form>
+          </div>
+          <% } %>
+        </div>
+        <% } %>
+        <% } %>
+
+        <% if (contact.status === 'closed') { %>
+        <div class="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center">
+          <form
+            method="POST"
+            action="/items/<%= item.id %>/contact/<%= contact.id %>/reopen"
+            class="mb-0 w-full sm:w-auto"
+          >
+            <button
+              type="submit"
+              class="btn btn-outline btn-sm w-full sm:w-auto"
+              onclick="return confirm('Reopen this chat? You and the other person can send messages again.');"
+            >
+              <i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>Reopen
+            </button>
+          </form>
+          <p class="thread-discord-toolbar__hint mb-0 hidden text-xs text-secondary sm:block">
+            Listing unchanged — same conversation, messages turn back on.
+          </p>
+        </div>
+        <% } %>
+
+      </div>
+
+      <!-- Composer -->
+      <% if (canPost) { %>
+      <div
+        class="thread-discord-composer border-t-base relative flex shrink-0 flex-col gap-2 border-t bg-surface p-2 sm:p-3"
+        data-thread-composer-root
+      >
+        <div
+          class="thread-composer-progress-track pointer-events-none absolute left-0 right-0 top-0 z-[5] h-[2px] overflow-hidden rounded-t-2xl opacity-0 transition-opacity duration-150"
+          data-thread-composer-progress-track
+          aria-hidden="true"
+        >
+          <div
+            class="thread-composer-progress-line h-full rounded-full bg-primary"
+            data-thread-composer-progress-line
+          ></div>
+        </div>
+        <p
+          class="thread-composer-inline-error fi-inline-flash fi-inline-flash--danger mb-0 hidden px-0.5 text-xs"
+          data-thread-composer-error
+          role="alert"
+        ></p>
+        <div
+          class="thread-composer-attach-dock hidden"
+          data-thread-attachment-dock
+          aria-label="Attachment preview"
+          aria-hidden="true"
+        >
+          <div class="thread-composer-attach-dock__inner">
+            <div class="thread-composer-attach-dock__thumb-wrap">
+              <img
+                class="thread-composer-attach-dock__img hidden"
+                data-thread-attachment-preview-img
+                alt="Selected attachment preview"
+              />
+              <video
+                class="thread-composer-attach-dock__video hidden"
+                data-thread-attachment-preview-video
+                muted
+                playsinline
+                preload="metadata"
+                aria-hidden="true"
+              ></video>
+            </div>
+            <div class="thread-composer-attach-dock__meta">
+              <span class="thread-composer-attach-dock__name truncate" data-thread-attachment-filename></span>
+              <button
+                type="button"
+                class="thread-composer-attach-dock__clear"
+                data-thread-attachment-clear
+                aria-label="Remove attachment"
+              >
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <form
+          method="POST"
+          action="/items/<%= item.id %>/contact/<%= contact.id %>/message"
+          class="thread-discord-composer__form mb-0"
+          enctype="multipart/form-data"
+          data-thread-composer
+        >
+          <label for="thread-message" class="visually-hidden">Message</label>
+          <textarea
+            id="thread-message"
+            name="message"
+            class="field-input thread-discord-composer__input text-sm"
+            rows="1"
+            maxlength="4000"
+            placeholder="Message <%= item.title %>"
+          ></textarea>
+          <input
+            id="thread-attachment"
+            type="file"
+            name="attachment"
+            class="visually-hidden"
+            accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+            tabindex="-1"
+            data-thread-attachment-input
+          />
+          <button
+            type="button"
+            class="btn btn-outline thread-discord-composer__attach"
+            aria-label="Attach image or short video"
+            title="Images (JPG, PNG, WEBP, GIF) or video (MP4, WEBM, MOV) · max 12 MB"
+            data-thread-attach-trigger
+          >
+            <i class="bi bi-paperclip text-lg leading-none" aria-hidden="true"></i>
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary thread-discord-composer__send"
+            aria-label="Send message"
+          >
+            <i class="bi bi-send-fill" aria-hidden="true"></i>
+          </button>
+        </form>
+      </div>
+      <script src="/js/thread/composer.js" defer></script>
+      <% } %>
+        </div>
+      </div>
+    </div>
+
+    <p
+      class="thread-discord-page__foot mb-0 shrink-0 pb-[max(0.35rem,env(safe-area-inset-bottom))] text-start text-[11px] text-muted-custom"
+    >
+      <i class="bi bi-shield-check me-1" aria-hidden="true"></i>Meet in safe public places.
+    </p>
+  </div>
+
+  <div
+    id="thread-media-lightbox"
+    class="thread-media-lightbox hidden"
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Attachment viewer"
+  >
+    <div class="thread-media-lightbox__backdrop" data-thread-lightbox-backdrop tabindex="-1"></div>
+    <button type="button" class="thread-media-lightbox__close" data-thread-lightbox-close aria-label="Close">
+      <i class="bi bi-x-lg" aria-hidden="true"></i>
+    </button>
+    <div class="thread-media-lightbox__panel" data-thread-lightbox-panel tabindex="-1">
+      <div class="thread-media-lightbox__body">
+        <img alt="" class="thread-media-lightbox__img hidden" data-thread-lightbox-img decoding="async" />
+        <video
+          class="thread-media-lightbox__video hidden"
+          controls
+          playsinline
+          preload="metadata"
+          data-thread-lightbox-video
+        ></video>
+      </div>
+    </div>
+  </div>
+  <script src="/js/thread-lightbox.js" defer></script>
+  <script src="/js/thread/pane-splitter.js" defer></script>
+</section>

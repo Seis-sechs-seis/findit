@@ -1,0 +1,62 @@
+<% if (attachmentUrl && String(attachmentUrl).trim()) { %>
+<% const kind =
+  typeof threadAttachmentKind === 'function' ? threadAttachmentKind(attachmentUrl) : 'image'; %>
+<% const safeUrl = String(attachmentUrl).replace(/"/g, '&quot;'); %>
+<div
+  class="thread-attach thread-attach--<%= kind %> <%= mine ? 'thread-attach--mine' : '' %> <%= afterText ? 'thread-attach--after-text' : '' %>"
+  data-thread-attach
+>
+  <% if (kind === 'video') { %>
+  <div class="thread-attach__shell thread-attach__shell--video">
+    <video
+      class="thread-attach__video"
+      src="<%= attachmentUrl %>"
+      controls
+      playsinline
+      preload="metadata"
+      referrerpolicy="no-referrer"
+    ></video>
+    <button
+      type="button"
+      class="thread-attach__zoom"
+      data-thread-lightbox-open
+      data-thread-lightbox-type="video"
+      data-thread-lightbox-src="<%= safeUrl %>"
+      aria-label="Expand video"
+    >
+      <i class="bi bi-arrows-fullscreen" aria-hidden="true"></i>
+    </button>
+  </div>
+  <% } else if (kind === 'image') { %>
+  <div class="thread-attach__shell thread-attach__shell--image">
+    <button
+      type="button"
+      class="thread-attach__img-btn"
+      data-thread-lightbox-open
+      data-thread-lightbox-type="image"
+      data-thread-lightbox-src="<%= safeUrl %>"
+      aria-label="View image full size"
+    >
+      <img
+        src="<%= attachmentUrl %>"
+        alt="Attachment"
+        class="thread-attach__img"
+        loading="lazy"
+        decoding="async"
+        referrerpolicy="no-referrer"
+      />
+    </button>
+  </div>
+  <% } else { %>
+  <a
+    href="<%= attachmentUrl %>"
+    class="thread-attach__file card-surface"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <i class="bi bi-file-earmark-arrow-down" aria-hidden="true"></i>
+    <span>Open attachment</span>
+  </a>
+  <% } %>
+</div>
+<% } %>

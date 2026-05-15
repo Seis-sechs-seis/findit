@@ -1,0 +1,1294 @@
+<%
+  const total = Number(stats && stats.total) || 0;
+  const lostCount = Number(stats && stats.lost) || 0;
+  const foundCount = Number(stats && stats.found) || 0;
+  const claimedCount = Number(stats && stats.claimed) || 0;
+  const pendingCount = Math.max(total - claimedCount, 0);
+  const safeTotal = Math.max(total, 1);
+  const claimedPct = Math.round((claimedCount / safeTotal) * 100);
+  const pendingPct = Math.max(100 - claimedPct, 0);
+%>
+
+<section class="dashboard-page py-8 sm:py-12 bg-page min-h-screen">
+  <div class="gutter max-w-6xl mx-auto">
+    <div class="dashboard-head">
+      <div>
+        <h1 class="title mb-1 dashboard-title-row">
+          <span>Dashboard</span>
+          <% if (isAdmin) { %>
+          <span class="badge dashboard-admin-badge shrink-0">Admin</span>
+          <% } %>
+        </h1>
+        <p class="text-sm text-secondary">
+          <%= isAdmin
+            ? 'Overview of all platform reports and request activity.'
+            : 'Only your reports and your request activity are shown here.' %>
+        </p>
+        <% if (isAdmin) { %>
+        <div class="dashboard-scope-switch mt-2">
+          <a href="#all-reports" class="dashboard-scope-switch__btn">All data</a>
+          <a href="#my-reports" class="dashboard-scope-switch__btn">My data</a>
+        </div>
+        <% } %>
+      </div>
+      <div class="dashboard-head__actions">
+        <a href="/report" class="dashboard-new-report-btn" title="New report" aria-label="Create new report">
+          <i class="bi bi-plus-lg"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="dashboard-kpis">
+      <article class="dashboard-kpi-card">
+        <span class="dashboard-kpi-card__label">Total reports</span>
+        <span class="dashboard-kpi-card__value"><%= total %></span>
+      </article>
+      <article class="dashboard-kpi-card">
+        <span class="dashboard-kpi-card__label">Lost</span>
+        <span class="dashboard-kpi-card__value"><%= lostCount %></span>
+      </article>
+      <article class="dashboard-kpi-card">
+        <span class="dashboard-kpi-card__label">Found</span>
+        <span class="dashboard-kpi-card__value"><%= foundCount %></span>
+      </article>
+      <article class="dashboard-kpi-card">
+        <span class="dashboard-kpi-card__label">Claimed</span>
+        <span class="dashboard-kpi-card__value"><%= claimedCount %></span>
+      </article>
+    </div>
+
+    <div class="dashboard-grid">
+      <section class="dashboard-card">
+        <div class="dashboard-card__head">
+          <h2 class="dashboard-card__title">Status overview</h2>
+          <p class="dashboard-card__sub">Visual split of resolved and active reports.</p>
+        </div>
+        <div class="status-donut-wrap">
+          <div class="status-donut" style="--claimed: <%= claimedPct %>%">
+            <div class="status-donut__center">
+              <strong><%= claimedPct %>%</strong>
+              <span>claimed</span>
+            </div>
+          </div>
+          <div class="status-legend">
+            <div><span class="dot dot-claimed"></span>Claimed (<%= claimedCount %>)</div>
+            <div><span class="dot dot-pending"></span>Active (<%= pendingCount %>)</div>
+          </div>
+        </div>
+        <div class="status-bars">
+          <div class="status-bars__row">
+            <span>Claimed</span>
+            <div class="status-bars__track"><i data-bar-value="<%= claimedPct %>"></i></div>
+            <strong><%= claimedPct %>%</strong>
+          </div>
+          <div class="status-bars__row">
+            <span>Active</span>
+            <div class="status-bars__track"><i data-bar-value="<%= pendingPct %>"></i></div>
+            <strong><%= pendingPct %>%</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-card">
+        <div class="dashboard-card__head">
+          <h2 class="dashboard-card__title">Request activity</h2>
+          <p class="dashboard-card__sub">Incoming and outgoing contact verification flow.</p>
+        </div>
+        <div class="request-counters">
+          <article>
+            <span>Incoming</span>
+            <strong><%= incomingRequests.length %></strong>
+          </article>
+          <article>
+            <span>Outgoing</span>
+            <strong><%= outgoingRequests.length %></strong>
+          </article>
+        </div>
+        <div class="request-lists">
+          <div>
+            <h3>Incoming</h3>
+            <% if (incomingRequests.length === 0) { %>
+            <p class="text-xs text-secondary">No incoming requests yet.</p>
+            <% } else { %>
+            <ul>
+              <% incomingRequests.slice(0, 4).forEach((req) => { %>
+              <li>
+                <span
+                  class="status-pill status-pill--<%= req.status === 'approved' ? 'found' : req.status === 'pending' ? 'claimed' : 'lost' %>"
+                  ><%= req.status %></span
+                >
+                <a href="/items/<%= req.itemId %>"><%= req.item ? req.item.title : ('Item #' + req.itemId) %></a>
+              </li>
+              <% }) %>
+            </ul>
+            <% } %>
+          </div>
+          <div>
+            <h3>Outgoing</h3>
+            <% if (outgoingRequests.length === 0) { %>
+            <p class="text-xs text-secondary">No outgoing requests yet.</p>
+            <% } else { %>
+            <ul>
+              <% outgoingRequests.slice(0, 4).forEach((req) => { %>
+              <li>
+                <span
+                  class="status-pill status-pill--<%= req.status === 'approved' ? 'found' : req.status === 'pending' ? 'claimed' : 'lost' %>"
+                  ><%= req.status %></span
+                >
+                <a href="/items/<%= req.itemId %>"><%= req.item ? req.item.title : ('Item #' + req.itemId) %></a>
+              </li>
+              <% }) %>
+            </ul>
+            <% } %>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="dashboard-request-panels">
+      <section class="dashboard-card">
+        <div class="dashboard-card__head">
+          <h2 class="dashboard-card__title"><%= isAdmin ? 'All requests' : 'Incoming requests' %></h2>
+          <p class="dashboard-card__sub">Requests that need your review or are already resolved.</p>
+        </div>
+        <% if (!incomingRequests || incomingRequests.length === 0) { %>
+        <p class="text-sm text-secondary mb-0">No incoming requests yet.</p>
+        <% } else { %>
+        <div class="dashboard-paginate" data-dashboard-paginate data-page-size="5">
+          <div class="dashboard-request-stack">
+            <% incomingRequests.forEach((req) => { %>
+            <article class="dashboard-request-item">
+              <div class="dashboard-request-item__head">
+                <div>
+                  <strong><%= req.item ? req.item.title : 'Item unavailable' %></strong>
+                  <p>request #<%= req.id %> &bull; status: <%= req.status %></p>
+                </div>
+                <span
+                  class="status-pill status-pill--<%= req.status === 'approved' ? 'found' : req.status === 'pending' ? 'claimed' : 'lost' %>"
+                  ><%= req.status %></span
+                >
+              </div>
+              <% if (req.message) { %>
+              <p class="dashboard-request-item__copy">
+                <strong>Message:</strong>
+                <%= req.message %>
+              </p>
+              <% } %>
+              <% if (req.verificationResponse) { %>
+              <p class="dashboard-request-item__copy">
+                <strong>Verification:</strong>
+                <%= req.verificationResponse %>
+              </p>
+              <% } %>
+              <% if (req.status === 'pending') { %>
+              <div class="dashboard-request-item__actions">
+                <form method="POST" action="/items/<%= req.itemId %>/contact-request/<%= req.id %>/approve">
+                  <button class="btn btn-sm btn-success" type="submit">
+                    <i class="bi bi-check-circle me-1"></i>Approve
+                  </button>
+                </form>
+                <form method="POST" action="/items/<%= req.itemId %>/contact-request/<%= req.id %>/reject">
+                  <button
+                    class="btn btn-sm btn-outline"
+                    type="submit"
+                    style="border-color: rgba(239, 68, 68, 0.45); color: #b91c1c"
+                  >
+                    <i class="bi bi-x-circle me-1"></i>Reject
+                  </button>
+                </form>
+              </div>
+              <% } else if (req.status === 'approved' || req.status === 'closed') { %>
+              <div class="dashboard-request-item__actions">
+                <a href="/items/<%= req.itemId %>/contact/<%= req.id %>" class="btn btn-sm btn-primary">
+                  <i class="bi bi-chat-text me-1"></i>Thread
+                </a>
+              </div>
+              <% } %>
+            </article>
+            <% }) %>
+          </div>
+          <nav class="dashboard-pager" aria-label="Incoming requests pages" hidden>
+            <button type="button" class="dashboard-pager__edge" data-pager-prev aria-label="Previous page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <div class="dashboard-pager__nums" role="group" aria-label="Page numbers"></div>
+            <button type="button" class="dashboard-pager__edge" data-pager-next aria-label="Next page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </nav>
+        </div>
+        <% } %>
+      </section>
+
+      <section class="dashboard-card">
+        <div class="dashboard-card__head">
+          <h2 class="dashboard-card__title">My requests</h2>
+          <p class="dashboard-card__sub">Requests you sent to other report owners.</p>
+        </div>
+        <% if (!outgoingRequests || outgoingRequests.length === 0) { %>
+        <p class="text-sm text-secondary mb-0">No requests yet.</p>
+        <% } else { %>
+        <div class="dashboard-paginate" data-dashboard-paginate data-page-size="5">
+          <div class="dashboard-request-stack">
+            <% outgoingRequests.forEach((req) => { %>
+            <article class="dashboard-request-item">
+              <div class="dashboard-request-item__head">
+                <div>
+                  <strong><%= req.item ? req.item.title : 'Item unavailable' %></strong>
+                  <p>request #<%= req.id %></p>
+                </div>
+                <span
+                  class="status-pill status-pill--<%= req.status === 'approved' ? 'found' : req.status === 'pending' ? 'claimed' : 'lost' %>"
+                  ><%= req.status %></span
+                >
+              </div>
+              <% if (req.ownerDecisionNote) { %>
+              <p class="dashboard-request-item__copy">
+                <strong>Decision note:</strong>
+                <%= req.ownerDecisionNote %>
+              </p>
+              <% } %>
+              <% if (req.status === 'pending') { %>
+              <form method="POST" action="/items/<%= req.itemId %>/contact-request/<%= req.id %>/cancel" class="mt-1">
+                <button class="btn btn-sm btn-outline" type="submit">
+                  <i class="bi bi-slash-circle me-1"></i>Cancel
+                </button>
+              </form>
+              <% } else if (req.status === 'approved' || req.status === 'closed') { %>
+              <a href="/items/<%= req.itemId %>/contact/<%= req.id %>" class="btn btn-sm btn-primary mt-1">
+                <i class="bi bi-chat-text me-1"></i>Thread
+              </a>
+              <% } %>
+            </article>
+            <% }) %>
+          </div>
+          <nav class="dashboard-pager" aria-label="My requests pages" hidden>
+            <button type="button" class="dashboard-pager__edge" data-pager-prev aria-label="Previous page">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <div class="dashboard-pager__nums" role="group" aria-label="Page numbers"></div>
+            <button type="button" class="dashboard-pager__edge" data-pager-next aria-label="Next page">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </nav>
+        </div>
+        <% } %>
+      </section>
+    </div>
+
+    <section class="dashboard-card dashboard-reports-section" id="all-reports">
+      <div class="dashboard-card__head dashboard-card__head--row">
+        <div>
+          <h2 class="dashboard-card__title"><%= isAdmin ? 'All reports' : 'Your reports' %></h2>
+          <p class="dashboard-card__sub">
+            <%= items.length %> report<%= items.length !== 1 ? 's' : '' %> currently listed.
+          </p>
+        </div>
+        <div class="flex items-center gap-1 text-xs">
+          <button class="filter-tab active" data-dash-filter="all">All</button>
+          <button class="filter-tab" data-dash-filter="lost">Lost</button>
+          <button class="filter-tab" data-dash-filter="found">Found</button>
+        </div>
+      </div>
+
+      <% if (items.length === 0) { %>
+      <div class="text-center py-12">
+        <i class="bi bi-inbox text-5xl text-muted-custom"></i>
+        <p class="text-secondary mt-3"><%= isAdmin ? 'No reports in the system yet.' : 'You have no reports yet.' %></p>
+        <a href="/report" class="btn btn-primary btn-sm mt-4"><i class="bi bi-plus-circle me-1"></i>Create report</a>
+      </div>
+      <% } else { %>
+      <div class="dashboard-paginate" data-dashboard-paginate data-page-size="8" data-report-filter="1">
+        <div class="dashboard-table-wrap" id="dashReportList">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Report</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% items.forEach((item) => { %>
+              <tr data-item-type="<%= item.type %>">
+                <td data-label="Report">
+                  <div class="dashboard-table__item">
+                    <%- include('partials/item-image-display', {
+                      item,
+                      wrapperClass: 'relative h-[42px] w-[42px] shrink-0 overflow-hidden rounded-[10px]',
+                      imgClass: 'absolute inset-0 h-full w-full object-cover',
+                      altText: item.title,
+                      loading: 'lazy',
+                      fetchpriority: ''
+                    }) %>
+                    <div>
+                      <div class="fw-semibold text-main"><%= item.title %></div>
+                      <div class="small text-muted-custom">
+                        <i class="bi bi-geo-alt"></i>
+                        <%= item.location %>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Type">
+                  <span class="badge <%= item.type === 'lost' ? 'badge-lost' : 'badge-found' %>"
+                    ><%= item.type.charAt(0).toUpperCase() + item.type.slice(1) %></span
+                  >
+                </td>
+                <td data-label="Status">
+                  <% if (item.status === 'claimed') { %>
+                  <span class="badge badge-claimed">Claimed</span>
+                  <% } else { %>
+                  <span class="item-card__category">Active</span>
+                  <% } %>
+                </td>
+                <td data-label="Category"><%= item.category %></td>
+                <td data-label="Date"><%= item.date %></td>
+                <td data-label="Actions">
+                  <div class="dashboard-row-actions">
+                    <a href="/items/<%= item.id %>" class="nav-icon-btn nav-icon-btn--view" title="View"
+                      ><i class="bi bi-eye text-xs"></i
+                    ></a>
+                    <% if (isAdmin) { %>
+                    <a href="/items/<%= item.id %>/edit" class="nav-icon-btn nav-icon-btn--edit" title="Edit"
+                      ><i class="bi bi-pencil text-xs"></i
+                    ></a>
+                    <form method="POST" action="/items/<%= item.id %>/toggle-status" class="inline">
+                      <button type="submit" class="nav-icon-btn nav-icon-btn--toggle" title="Toggle">
+                        <i class="bi bi-check2 text-xs"></i>
+                      </button>
+                    </form>
+                    <form
+                      method="POST"
+                      action="/items/<%= item.id %>/delete"
+                      class="inline"
+                      onsubmit="return confirm('Delete this report?');"
+                    >
+                      <button type="submit" class="nav-icon-btn nav-icon-btn--delete" title="Delete">
+                        <i class="bi bi-trash text-xs"></i>
+                      </button>
+                    </form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <nav class="dashboard-pager" aria-label="Reports list pages" hidden>
+          <button type="button" class="dashboard-pager__edge" data-pager-prev aria-label="Previous page">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <div class="dashboard-pager__nums" role="group" aria-label="Page numbers"></div>
+          <button type="button" class="dashboard-pager__edge" data-pager-next aria-label="Next page">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </nav>
+      </div>
+      <% } %>
+    </section>
+
+    <% if (isAdmin) { %>
+    <section class="dashboard-card dashboard-reports-section dashboard-my-reports-section" id="my-reports">
+      <div class="dashboard-card__head">
+        <h2 class="dashboard-card__title">My reports</h2>
+        <p class="dashboard-card__sub">Reports you personally created as an admin account.</p>
+      </div>
+      <% if (!myItems || myItems.length === 0) { %>
+      <p class="text-sm text-secondary mb-0">You have not created reports yet.</p>
+      <% } else { %>
+      <div class="dashboard-paginate" data-dashboard-paginate data-page-size="8">
+        <div class="dashboard-table-wrap" id="dashMyReportList">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Report</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% myItems.forEach((item) => { %>
+              <tr>
+                <td data-label="Report">
+                  <div class="dashboard-table__item">
+                    <%- include('partials/item-image-display', {
+                      item,
+                      wrapperClass: 'relative h-[42px] w-[42px] shrink-0 overflow-hidden rounded-[10px]',
+                      imgClass: 'absolute inset-0 h-full w-full object-cover',
+                      altText: item.title,
+                      loading: 'lazy',
+                      fetchpriority: ''
+                    }) %>
+                    <div>
+                      <div class="fw-semibold text-main"><%= item.title %></div>
+                      <div class="small text-muted-custom">
+                        <i class="bi bi-geo-alt"></i>
+                        <%= item.location %>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Type">
+                  <span class="badge <%= item.type === 'lost' ? 'badge-lost' : 'badge-found' %>"
+                    ><%= item.type.charAt(0).toUpperCase() + item.type.slice(1) %></span
+                  >
+                </td>
+                <td data-label="Status">
+                  <% if (item.status === 'claimed') { %>
+                  <span class="badge badge-claimed">Claimed</span>
+                  <% } else { %>
+                  <span class="item-card__category">Active</span>
+                  <% } %>
+                </td>
+                <td data-label="Category"><%= item.category %></td>
+                <td data-label="Date"><%= item.date %></td>
+                <td data-label="Actions">
+                  <div class="dashboard-row-actions">
+                    <a href="/items/<%= item.id %>" class="nav-icon-btn nav-icon-btn--view" title="View"
+                      ><i class="bi bi-eye text-xs"></i
+                    ></a>
+                    <a href="/items/<%= item.id %>/edit" class="nav-icon-btn nav-icon-btn--edit" title="Edit"
+                      ><i class="bi bi-pencil text-xs"></i
+                    ></a>
+                    <form method="POST" action="/items/<%= item.id %>/toggle-status" class="inline">
+                      <button type="submit" class="nav-icon-btn nav-icon-btn--toggle" title="Toggle">
+                        <i class="bi bi-check2 text-xs"></i>
+                      </button>
+                    </form>
+                    <form
+                      method="POST"
+                      action="/items/<%= item.id %>/delete"
+                      class="inline"
+                      onsubmit="return confirm('Delete this report?');"
+                    >
+                      <button type="submit" class="nav-icon-btn nav-icon-btn--delete" title="Delete">
+                        <i class="bi bi-trash text-xs"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <nav class="dashboard-pager" aria-label="My reports list pages" hidden>
+          <button type="button" class="dashboard-pager__edge" data-pager-prev aria-label="Previous page">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <div class="dashboard-pager__nums" role="group" aria-label="Page numbers"></div>
+          <button type="button" class="dashboard-pager__edge" data-pager-next aria-label="Next page">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </nav>
+      </div>
+      <% } %>
+    </section>
+    <% } %>
+  </div>
+  <a href="/report" class="dashboard-report-fab" title="New report" aria-label="Create new report">
+    <i class="bi bi-plus-lg"></i>
+  </a>
+</section>
+
+<style>
+  .dashboard-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .dashboard-head__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dashboard-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.625rem;
+  }
+  .dashboard-admin-badge {
+    background: rgba(108, 92, 231, 0.1);
+    color: var(--primary);
+    font-size: 0.7rem;
+  }
+  .dashboard-scope-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dashboard-scope-switch__btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+  }
+  .dashboard-scope-switch__btn:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+    background: var(--surface-2);
+  }
+  .dashboard-new-report-btn {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    color: #fff;
+    border: 1px solid var(--primary);
+    text-decoration: none;
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease,
+      background-color 0.15s ease;
+  }
+  .dashboard-new-report-btn:hover {
+    background: var(--primary-dark);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(108, 92, 231, 0.25);
+  }
+  .dashboard-report-fab {
+    position: fixed;
+    right: max(1rem, env(safe-area-inset-right, 0px));
+    bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+    z-index: 75;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    color: #fff;
+    border: 1px solid var(--primary);
+    box-shadow: 0 10px 28px rgba(108, 92, 231, 0.38);
+    text-decoration: none;
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease,
+      background-color 0.15s ease;
+  }
+  .dashboard-report-fab:hover {
+    background: var(--primary-dark);
+    color: #fff;
+    transform: scale(1.04);
+    box-shadow: 0 12px 32px rgba(108, 92, 231, 0.42);
+  }
+  .dashboard-report-fab i {
+    font-size: 1.35rem;
+    line-height: 1;
+  }
+  @media (max-width: 1023px) {
+    .dashboard-page .gutter {
+      margin-bottom: max(4.25rem, calc(3.5rem + env(safe-area-inset-bottom, 0px)));
+    }
+    .dashboard-head .dashboard-new-report-btn {
+      display: none !important;
+    }
+    .dashboard-report-fab {
+      display: flex;
+    }
+  }
+  @media (min-width: 1024px) {
+    .dashboard-report-fab {
+      display: none !important;
+    }
+  }
+  .dashboard-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .dashboard-kpi-card {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 10px;
+    display: grid;
+    gap: 2px;
+  }
+  .dashboard-kpi-card__label {
+    font-size: 0.73rem;
+    color: var(--text-secondary);
+  }
+  .dashboard-kpi-card__value {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .dashboard-card {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .dashboard-card__head {
+    display: grid;
+    gap: 3px;
+    margin-bottom: 10px;
+  }
+  .dashboard-card__head--row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .dashboard-card__title {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .dashboard-card__sub {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+  }
+  .status-donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .status-donut {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: conic-gradient(#6c5ce7 var(--claimed), rgba(148, 163, 184, 0.25) var(--claimed));
+    display: grid;
+    place-items: center;
+  }
+  .status-donut__center {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: grid;
+    place-items: center;
+    text-align: center;
+  }
+  .status-donut__center strong {
+    font-size: 0.9rem;
+    color: var(--text);
+    line-height: 1;
+  }
+  .status-donut__center span {
+    font-size: 0.62rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .status-legend {
+    display: grid;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+  }
+  .dot-claimed {
+    background: #6c5ce7;
+  }
+  .dot-pending {
+    background: rgba(148, 163, 184, 0.7);
+  }
+  .status-bars {
+    display: grid;
+    gap: 7px;
+  }
+  .status-bars__row {
+    display: grid;
+    grid-template-columns: 58px 1fr 38px;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.73rem;
+    color: var(--text-secondary);
+  }
+  .status-bars__track {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+  .status-bars__track i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #6c5ce7, #8b7cf6);
+  }
+  .request-counters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .request-counters article {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px;
+    display: grid;
+    gap: 2px;
+  }
+  .request-counters span {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+  }
+  .request-counters strong {
+    font-size: 1rem;
+    color: var(--text);
+  }
+  .request-lists {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .request-lists h3 {
+    margin: 0 0 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .request-lists ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .request-lists li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .request-lists a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.76rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .request-lists a:hover {
+    color: var(--text);
+    text-decoration: underline;
+  }
+  .dashboard-request-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+    margin-bottom: 18px;
+  }
+  .dashboard-reports-section {
+    margin-top: 0;
+  }
+  .dashboard-my-reports-section {
+    margin-top: 16px;
+  }
+  .dashboard-request-stack {
+    display: grid;
+    gap: 10px;
+  }
+  .dashboard-request-item {
+    border: 1px solid var(--border);
+    background: var(--page-alt);
+    border-radius: 10px;
+    padding: 10px;
+    display: grid;
+    gap: 6px;
+  }
+  .dashboard-request-item__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .dashboard-request-item__head strong {
+    display: block;
+    font-size: 0.86rem;
+    color: var(--text);
+  }
+  .dashboard-request-item__head p {
+    margin: 0;
+    font-size: 0.73rem;
+    color: var(--text-secondary);
+  }
+  .dashboard-request-item__copy {
+    margin: 0;
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .dashboard-request-item__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .dashboard-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .dashboard-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 740px;
+  }
+  .dashboard-table th {
+    text-align: left;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  .dashboard-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    vertical-align: middle;
+  }
+  .dashboard-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .dashboard-table__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .dashboard-table__item img {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .filter-tab {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-tab:hover {
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+  .filter-tab.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .dashboard-row-actions {
+    gap: 0.4rem;
+  }
+  .dashboard-row-actions .nav-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.05rem;
+    height: 2.05rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition:
+      transform 0.16s ease,
+      box-shadow 0.16s ease,
+      border-color 0.16s ease,
+      background-color 0.16s ease,
+      color 0.16s ease;
+    text-decoration: none;
+  }
+  .dashboard-row-actions .nav-icon-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.14);
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
+  .dashboard-row-actions .nav-icon-btn--view:hover {
+    background: rgba(84, 160, 255, 0.1);
+    border-color: rgba(84, 160, 255, 0.42);
+    color: #2c6fbb;
+  }
+  .dashboard-row-actions .nav-icon-btn--edit:hover {
+    background: rgba(108, 92, 231, 0.1);
+    border-color: rgba(108, 92, 231, 0.42);
+    color: #5b4bc4;
+  }
+  .dashboard-row-actions .nav-icon-btn--toggle:hover {
+    background: rgba(46, 216, 163, 0.12);
+    border-color: rgba(46, 216, 163, 0.42);
+    color: #1a8a65;
+  }
+  .dashboard-row-actions .nav-icon-btn--delete {
+    color: #d14a4a;
+    border-color: rgba(239, 68, 68, 0.34);
+  }
+  .dashboard-row-actions .nav-icon-btn--delete:hover {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.48);
+    color: #b91c1c;
+  }
+  .dashboard-paginate {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .dashboard-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    padding: 4px 2px;
+  }
+  .dashboard-pager__edge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.35rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition:
+      border-color 0.15s,
+      color 0.15s,
+      background 0.15s;
+  }
+  .dashboard-pager__edge:hover:not(:disabled) {
+    border-color: var(--border-strong);
+    color: var(--text);
+    background: var(--surface-2);
+  }
+  .dashboard-pager__edge:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .dashboard-pager__nums {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    max-width: 100%;
+  }
+  .dashboard-pager__num {
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.35rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      border-color 0.15s,
+      color 0.15s,
+      background 0.15s;
+  }
+  .dashboard-pager__num:hover {
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+  .dashboard-pager__num.is-active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+  .dashboard-pager__ellipsis {
+    padding: 0 4px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    user-select: none;
+  }
+  .dash-filter-hidden,
+  .dash-page-hidden {
+    display: none !important;
+  }
+  @media (max-width: 991px) {
+    .dashboard-kpis {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+    .dashboard-request-panels {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 575px) {
+    .dashboard-head {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .dashboard-card__head--row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .status-donut-wrap {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .request-lists {
+      grid-template-columns: 1fr;
+    }
+    .dashboard-my-reports-section {
+      margin-top: 12px;
+    }
+    .dashboard-table {
+      min-width: 0;
+      border-spacing: 0;
+    }
+    .dashboard-table thead {
+      display: none;
+    }
+    .dashboard-table tbody {
+      display: grid;
+      gap: 10px;
+      padding: 10px;
+    }
+    .dashboard-table tr {
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      padding: 8px;
+    }
+    .dashboard-table td {
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 8px;
+      border: 0;
+      padding: 5px 4px;
+      font-size: 0.8rem;
+    }
+    .dashboard-table td::before {
+      content: attr(data-label);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+      font-weight: 700;
+    }
+    .dashboard-table td[data-label="Report"] {
+      display: block;
+      padding-bottom: 8px;
+    }
+    .dashboard-table td[data-label="Report"]::before {
+      display: none;
+    }
+    .dashboard-table td[data-label="Actions"] {
+      display: block;
+      padding-top: 8px;
+    }
+    .dashboard-table td[data-label="Actions"]::before {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  (() => {
+    document.querySelectorAll("[data-bar-value]").forEach((bar) => {
+      const n = Number(bar.getAttribute("data-bar-value"));
+      const safe = Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+      bar.style.width = safe + "%";
+    });
+
+    function getPageItems(root) {
+      const articles = root.querySelectorAll(".dashboard-request-stack > .dashboard-request-item");
+      if (articles.length) return Array.from(articles);
+      const rows = root.querySelectorAll("tbody tr");
+      return Array.from(rows);
+    }
+
+    function buildPageList(current, total) {
+      if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+      const set = new Set([1, total]);
+      const add = (p) => {
+        if (p >= 1 && p <= total) set.add(p);
+      };
+      add(current);
+      add(current - 1);
+      add(current + 1);
+      add(current - 2);
+      add(current + 2);
+      const sorted = [...set].sort((a, b) => a - b);
+      const out = [];
+      let last = 0;
+      sorted.forEach((p) => {
+        if (last && p - last > 1) out.push("ellipsis");
+        out.push(p);
+        last = p;
+      });
+      return out;
+    }
+
+    function setupPaginate(root) {
+      const state = { page: 1 };
+      const pager = root.querySelector(".dashboard-pager");
+      const numsEl = root.querySelector(".dashboard-pager__nums");
+      const prevBtn = root.querySelector("[data-pager-prev]");
+      const nextBtn = root.querySelector("[data-pager-next]");
+      let pageSize = Math.max(1, Number(root.getAttribute("data-page-size")) || 6);
+      const mq = window.matchMedia("(min-width: 768px)");
+      const bumpSize = () => {
+        const base = Math.max(1, Number(root.getAttribute("data-page-size")) || 6);
+        pageSize = mq.matches ? Math.max(base, 8) : base;
+      };
+      bumpSize();
+      if (typeof mq.addEventListener === "function") {
+        mq.addEventListener("change", () => {
+          bumpSize();
+          state.page = 1;
+          render();
+        });
+      } else if (typeof mq.addListener === "function") {
+        mq.addListener(() => {
+          bumpSize();
+          state.page = 1;
+          render();
+        });
+      }
+
+      function poolItems() {
+        return getPageItems(root).filter((el) => !el.classList.contains("dash-filter-hidden"));
+      }
+
+      function render() {
+        const items = getPageItems(root);
+        items.forEach((el) => el.classList.remove("dash-page-hidden"));
+        const pool = poolItems();
+        const totalPages = Math.max(1, Math.ceil(pool.length / pageSize));
+        state.page = Math.min(Math.max(1, state.page), totalPages);
+        const start = (state.page - 1) * pageSize;
+        pool.forEach((el, i) => {
+          if (i < start || i >= start + pageSize) el.classList.add("dash-page-hidden");
+        });
+        items.forEach((el) => {
+          if (el.classList.contains("dash-filter-hidden")) el.classList.add("dash-page-hidden");
+        });
+
+        if (!pager || !numsEl || !prevBtn || !nextBtn) return;
+        if (pool.length <= pageSize) {
+          pager.hidden = true;
+          return;
+        }
+        pager.hidden = false;
+        prevBtn.disabled = state.page <= 1;
+        nextBtn.disabled = state.page >= totalPages;
+        numsEl.innerHTML = "";
+        const list = buildPageList(state.page, totalPages);
+        list.forEach((entry) => {
+          if (entry === "ellipsis") {
+            const span = document.createElement("span");
+            span.className = "dashboard-pager__ellipsis";
+            span.textContent = "…";
+            numsEl.appendChild(span);
+            return;
+          }
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "dashboard-pager__num" + (entry === state.page ? " is-active" : "");
+          b.textContent = String(entry);
+          b.setAttribute("aria-label", `Page ${entry}`);
+          if (entry === state.page) b.setAttribute("aria-current", "page");
+          else b.removeAttribute("aria-current");
+          b.addEventListener("click", () => {
+            state.page = entry;
+            render();
+          });
+          numsEl.appendChild(b);
+        });
+      }
+
+      prevBtn.addEventListener("click", () => {
+        state.page -= 1;
+        render();
+      });
+      nextBtn.addEventListener("click", () => {
+        state.page += 1;
+        render();
+      });
+
+      root._dashPaginateSync = () => {
+        state.page = 1;
+        render();
+      };
+      render();
+    }
+
+    document.querySelectorAll("[data-dashboard-paginate]").forEach(setupPaginate);
+
+    const filterBtns = document.querySelectorAll("[data-dash-filter]");
+    const reportRows = document.querySelectorAll("#dashReportList tbody tr[data-item-type]");
+    const reportPaginateRoot = document.querySelector('[data-report-filter="1"]');
+    filterBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        filterBtns.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const f = btn.getAttribute("data-dash-filter");
+        reportRows.forEach((row) => {
+          const match = f === "all" || row.getAttribute("data-item-type") === f;
+          row.classList.toggle("dash-filter-hidden", !match);
+        });
+        if (reportPaginateRoot && typeof reportPaginateRoot._dashPaginateSync === "function") {
+          reportPaginateRoot._dashPaginateSync();
+        }
+      });
+    });
+  })();
+</script>

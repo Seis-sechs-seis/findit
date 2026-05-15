@@ -1,0 +1,40 @@
+<article class="home-landing-stat">
+  <div class="home-landing-stat__icon-wrap" aria-hidden="true"><i class="bi bi-search"></i></div>
+  <div class="home-landing-stat__body">
+    <p
+      class="home-landing-stat__value text-main js-home-stat-count"
+      data-count-to="<%= stats.claimed %>"
+      data-suffix="+"
+    >
+      0+
+    </p>
+    <p class="home-landing-stat__label">Items reunited</p>
+  </div>
+</article>
+<article class="home-landing-stat">
+  <div class="home-landing-stat__icon-wrap" aria-hidden="true"><i class="bi bi-people"></i></div>
+  <div class="home-landing-stat__body">
+    <p
+      class="home-landing-stat__value text-main js-home-stat-count"
+      data-count-to="<%= Math.max((stats.total || 0) - (stats.claimed || 0), 0) %>"
+      data-suffix="+"
+    >
+      0+
+    </p>
+    <p class="home-landing-stat__label">Active reports</p>
+  </div>
+</article>
+<article class="home-landing-stat">
+  <div class="home-landing-stat__icon-wrap" aria-hidden="true"><i class="bi bi-clock"></i></div>
+  <div class="home-landing-stat__body">
+    <p class="home-landing-stat__value text-main js-home-stat-count" data-count-to="24" data-suffix="/7">0/7</p>
+    <p class="home-landing-stat__label">Community help</p>
+  </div>
+</article>
+<article class="home-landing-stat">
+  <div class="home-landing-stat__icon-wrap" aria-hidden="true"><i class="bi bi-shield-lock"></i></div>
+  <div class="home-landing-stat__body">
+    <p class="home-landing-stat__value text-main js-home-stat-count" data-count-to="100" data-suffix="%">0%</p>
+    <p class="home-landing-stat__label">Privacy-first</p>
+  </div>
+</article>

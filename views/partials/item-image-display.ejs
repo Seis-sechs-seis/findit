@@ -1,0 +1,32 @@
+<% const _ep = item.emptyImagePlaceholder && item.placeholderImageDark; %>
+<% const _load = typeof loading !== 'undefined' ? loading : 'lazy'; %>
+<% const _alt = typeof altText !== 'undefined' ? altText : item.title; %>
+<% const _fp = typeof fetchpriority !== 'undefined' ? fetchpriority : ''; %>
+<% if (_ep) { %>
+<div class="<%= wrapperClass %>">
+  <img
+    src="<%= item.imageUrl %>"
+    alt="<%= _alt %>"
+    loading="<%= _load %>"
+    <% if (_fp) { %>fetchpriority="<%= _fp %>"<% } %>
+    referrerpolicy="no-referrer"
+    class="<%= imgClass %> dark:hidden"
+  />
+  <img
+    src="<%= item.placeholderImageDark %>"
+    alt=""
+    loading="<%= _load %>"
+    referrerpolicy="no-referrer"
+    class="<%= imgClass %> hidden dark:block absolute inset-0 h-full w-full object-cover"
+  />
+</div>
+<% } else { %>
+<img
+  src="<%= item.imageUrl %>"
+  alt="<%= _alt %>"
+  loading="<%= _load %>"
+  <% if (_fp) { %>fetchpriority="<%= _fp %>"<% } %>
+  referrerpolicy="no-referrer"
+  class="<%= imgClass %>"
+/>
+<% } %>

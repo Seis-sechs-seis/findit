@@ -1,0 +1,16 @@
+<section class="min-h-screen flex flex-col items-center justify-center px-4 py-16 bg-page text-center">
+  <i class="bi bi-emoji-frown text-6xl text-muted-custom mb-4"></i>
+  <h1 class="text-2xl font-bold text-main mb-2"><%= title %></h1>
+  <p class="text-sm text-secondary mb-6">
+    <% if (typeof message !== 'undefined' && message) { %> <%= message %> <% } else { %> The page you're looking for
+    doesn't exist or has been moved. <% } %>
+  </p>
+  <% if (typeof stack !== 'undefined' && stack) { %>
+  <pre
+    class="text-left text-xs p-4 rounded-xl mb-6 mx-auto max-w-xl overflow-x-auto"
+    style="background: var(--surface-2); border: 1px solid var(--border)"
+  >
+<%= stack %></pre>
+  <% } %>
+  <a href="/" class="btn btn-primary"><i class="bi bi-house me-1"></i> Go Home</a>
+</section>

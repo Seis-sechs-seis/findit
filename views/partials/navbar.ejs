@@ -1,0 +1,325 @@
+<header class="sticky top-0 z-50 border-b-base backdrop-blur-md app-glass-nav" data-app-nav>
+  <% const _rqUnr = typeof requestsUnreadCount !== 'undefined' ? Math.max(0, Number(requestsUnreadCount) || 0) : 0; %>
+  <div class="gutter flex items-center justify-between h-14">
+    <!-- Left: Brand -->
+    <a class="flex items-center gap-2 text-decoration-none flex-shrink-0" href="/">
+      <span class="brand-mark-wrap inline-flex h-9 w-9 shrink-0 items-center justify-center"
+        ><%- include('logo') %></span
+      >
+      <span class="text-sm font-bold text-main"><%= appName %></span>
+    </a>
+
+    <!-- Center: Nav links (desktop only — .app-desktop-nav also toggled via CSS mq) -->
+    <% if (user) { %>
+    <nav class="hidden lg:flex app-desktop-nav items-center gap-1 mx-auto" aria-label="Primary">
+      <a href="/" class="nav-link-item <%= currentPath === '/' ? 'active' : '' %>">Home</a>
+      <a
+        href="/items"
+        class="nav-link-item <%= currentPath.startsWith('/items') && !currentPath.includes('/report') && !currentPath.includes('/contact/') ? 'active' : '' %>"
+        >Browse</a
+      >
+      <a
+        href="/report"
+        class="nav-link-item <%= currentPath === '/report' || currentPath.includes('/items/report') ? 'active' : '' %>"
+        >Report</a
+      >
+      <a href="/dashboard" class="nav-link-item <%= currentPath === '/dashboard' ? 'active' : '' %>">Dashboard</a>
+    </nav>
+    <% } %>
+
+    <!-- Right: Actions -->
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <% if (user) { %>
+      <button
+        class="hidden lg:inline-flex app-desktop-theme nav-icon-btn"
+        type="button"
+        data-theme-toggle
+        aria-label="Toggle theme"
+      >
+        <i class="bi bi-moon-stars text-sm"></i>
+      </button>
+      <details class="group relative hidden lg:block">
+        <summary
+          class="list-none cursor-pointer flex items-center justify-center rounded-full w-8 h-8 bg-primary text-white font-bold text-xs"
+          aria-label="Profile"
+        >
+          <% if (user.profileImageUrl) { %>
+          <img src="<%= user.profileImageUrl %>" alt="" class="w-full h-full rounded-full object-cover" />
+          <% } else { %>
+          <%= (user.email?.charAt(0) || 'U').toUpperCase() %>
+          <% } %>
+        </summary>
+        <div
+          class="absolute right-0 mt-2 w-44 rounded-xl bg-surface border-base shadow-theme-lg py-1 opacity-0 invisible group-open:opacity-100 group-open:visible transition-all z-50"
+          style="border: 1px solid var(--border)"
+        >
+          <a
+            href="/requests"
+            class="relative block px-4 py-2 pr-10 text-sm text-main hover:bg-surface-2 text-decoration-none<%= currentPath === '/requests' ? ' font-semibold text-primary' : '' %>"
+            aria-label="<%= _rqUnr > 0 ? 'Requests, ' + _rqUnr + ' unread' : 'Requests' %>"
+            ><i class="bi bi-inbox me-2 text-secondary"></i>Requests<% if (_rqUnr > 0) { %><span class="app-requests-badge app-requests-badge--menu" title="<%= _rqUnr %> unread"><%= _rqUnr > 99 ? '99+' : _rqUnr %></span><% } %></a
+          >
+          <a href="/settings" class="block px-4 py-2 text-sm text-main hover:bg-surface-2 text-decoration-none"
+            ><i class="bi bi-gear me-2 text-secondary"></i>Settings</a
+          >
+          <div class="border-t-base my-1"></div>
+          <form action="/logout" method="post" class="contents">
+            <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-main hover:bg-surface-2">
+              <i class="bi bi-box-arrow-right me-2 text-secondary"></i>Logout
+            </button>
+          </form>
+        </div>
+      </details>
+      <% } else { %>
+      <div class="app-guest-auth items-center gap-2">
+        <a href="/login" class="btn btn-ghost btn-sm">Login</a>
+        <a href="/register" class="btn btn-primary btn-sm">Sign up</a>
+      </div>
+      <% } %>
+
+      <% if (user) { %>
+      <button class="lg:hidden app-mobile-burger nav-icon-btn" type="button" data-drawer-open aria-label="Menu">
+        <i class="bi bi-list text-lg"></i>
+      </button>
+      <% } %>
+    </div>
+  </div>
+</header>
+
+<% if (user) { %>
+<!-- Drawer backdrop -->
+<div
+  class="fixed inset-0 app-drawer-backdrop"
+  style="
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1090;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.2s,
+      visibility 0.2s;
+  "
+  data-drawer-backdrop
+  hidden
+></div>
+
+<!-- Drawer panel (RIGHT side) — uses theme CSS vars (see .app-drawer-panel) -->
+<aside
+  class="app-drawer-panel border-l border-base"
+  style="
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 280px;
+    max-width: 80vw;
+    z-index: 1100;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  "
+  data-drawer-panel
+  aria-hidden="true"
+  id="appDrawer"
+>
+  <div class="flex justify-end px-4 pt-3">
+    <button
+      class="nav-icon-btn rounded-full h-10 w-10 shrink-0"
+      type="button"
+      data-drawer-close
+      aria-label="Close menu"
+    >
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1" aria-label="Mobile">
+    <a href="/" class="drawer-link"><i class="bi bi-house"></i>Home</a>
+    <a href="/items" class="drawer-link"><i class="bi bi-search"></i>Browse</a>
+
+    <% if (user) { %>
+    <details class="app-drawer__expand">
+      <summary class="drawer-link cursor-pointer list-none">
+        <i class="bi bi-plus-circle"></i>Report<i class="bi bi-chevron-down ml-auto text-xs"></i>
+      </summary>
+      <div class="pl-8 mt-1 space-y-1">
+        <a href="/items/report?type=lost" class="drawer-link text-sm py-2">Lost Item</a>
+        <a href="/items/report?type=found" class="drawer-link text-sm py-2">Found Item</a>
+      </div>
+    </details>
+    <a
+      href="/requests"
+      class="drawer-link relative pr-10"
+      aria-label="<%= _rqUnr > 0 ? 'Requests, ' + _rqUnr + ' unread' : 'Requests' %>"
+      ><i class="bi bi-inbox"></i>Requests<% if (_rqUnr > 0) { %><span class="app-requests-badge app-requests-badge--drawer" title="<%= _rqUnr %> unread"><%= _rqUnr > 99 ? '99+' : _rqUnr %></span><% } %></a
+    >
+    <a href="/dashboard" class="drawer-link"><i class="bi bi-grid"></i>Dashboard</a>
+    <a href="/settings" class="drawer-link"><i class="bi bi-gear"></i>Settings</a>
+    <% } %>
+  </nav>
+
+  <div class="px-3 py-4 space-y-2 border-t-base bg-surface">
+    <button class="app-drawer-pill-btn app-drawer-theme-btn w-full transition-colors" type="button" data-theme-toggle>
+      <i class="bi bi-moon-stars"></i>
+      <span data-theme-toggle-label>Dark</span>
+    </button>
+    <% if (!user) { %>
+    <a href="/login" class="btn btn-primary w-full text-sm app-drawer-pill-btn">Login</a>
+    <% } else { %>
+    <form action="/logout" method="post">
+      <button
+        type="submit"
+        class="btn btn-sm w-full app-drawer-pill-btn app-drawer-logout justify-center font-semibold"
+      >
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </button>
+    </form>
+    <% } %>
+  </div>
+</aside>
+<% } %>
+
+<style>
+  .app-glass-nav {
+    background: rgba(255, 255, 255, 0.74);
+    border-bottom: 1px solid rgba(43, 45, 66, 0.1);
+    backdrop-filter: saturate(135%) blur(10px);
+    -webkit-backdrop-filter: saturate(135%) blur(10px);
+  }
+  [data-bs-theme="dark"] .app-glass-nav {
+    background: rgba(15, 23, 42, 0.72);
+    border-bottom-color: rgba(148, 163, 184, 0.24);
+  }
+
+  .nav-link-item {
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .nav-link-item:hover {
+    color: var(--text);
+    background: var(--surface-2);
+  }
+  .nav-link-item.active {
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .nav-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .nav-icon-btn:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  .app-desktop-theme.nav-icon-btn:hover,
+  .app-desktop-theme.nav-icon-btn:focus-visible {
+    background: transparent;
+    color: var(--text);
+    box-shadow: 0 0 18px rgba(108, 92, 231, 0.28);
+  }
+  .app-desktop-theme.nav-icon-btn i {
+    transition:
+      transform 0.2s ease,
+      filter 0.2s ease;
+  }
+  .app-desktop-theme.nav-icon-btn.theme-icon-anim i {
+    animation: themeIconPop 240ms ease-out;
+  }
+  @keyframes themeIconPop {
+    0% {
+      transform: scale(1) rotate(0deg);
+    }
+    45% {
+      transform: scale(1.22) rotate(-10deg);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+    }
+  }
+  .drawer-link {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .drawer-link:hover {
+    background: var(--surface-2);
+  }
+  [data-drawer-backdrop]:not([hidden]) {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  [data-drawer-panel].is-open,
+  [data-drawer-panel][aria-hidden="false"] {
+    transform: translateX(0) !important;
+  }
+  /* Closed drawer is still fixed in the viewport; without this it can steal taps from footer / cookie area. */
+  [data-drawer-backdrop][hidden] {
+    pointer-events: none;
+  }
+  [data-drawer-backdrop]:not([hidden]) {
+    pointer-events: auto;
+  }
+  [data-drawer-panel]:not(.is-open) {
+    pointer-events: none;
+  }
+  [data-drawer-panel].is-open {
+    pointer-events: auto;
+  }
+
+  /* Burger only on narrow viewports — does not depend on Tailwind lg: utilities */
+  [data-app-nav] .app-desktop-nav,
+  [data-app-nav] .app-desktop-theme,
+  [data-app-nav] .app-desktop-profile,
+  [data-app-nav] .app-desktop-auth {
+    display: none;
+  }
+  [data-app-nav] .app-guest-auth {
+    display: inline-flex;
+  }
+  [data-app-nav] .app-mobile-burger {
+    display: inline-flex;
+  }
+
+  @media (min-width: 1024px) {
+    [data-app-nav] .app-desktop-nav {
+      display: flex !important;
+    }
+    [data-app-nav] .app-desktop-theme {
+      display: inline-flex !important;
+    }
+    [data-app-nav] .app-desktop-profile {
+      display: block !important;
+    }
+    [data-app-nav] .app-desktop-auth {
+      display: flex !important;
+    }
+    [data-app-nav] .app-guest-auth {
+      display: inline-flex !important;
+    }
+    [data-app-nav] .app-mobile-burger {
+      display: none !important;
+    }
+  }
+</style>

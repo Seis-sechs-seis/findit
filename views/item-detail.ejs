@@ -1,0 +1,709 @@
+<section class="py-10 sm:py-14 bg-page">
+  <div class="gutter">
+    <% const galleryImages = (Array.isArray(item.imageUrls) && item.imageUrls.length ? item.imageUrls :
+    [item.imageUrl]).filter(Boolean); %> <% const safeGalleryImages = galleryImages.length ? galleryImages :
+    ['/images/hero-bg.jpg']; %>
+    <article class="item-layout">
+      <!-- Left: gallery stays pinned while the detail column scrolls (desktop) -->
+      <div class="item-gallery-sticky-wrap">
+        <div class="item-gallery-rail">
+          <div class="item-gallery card-surface" style="padding: 14px">
+            <div class="item-gallery__hero" data-gallery-open role="button" tabindex="0" aria-label="Open image preview">
+              <% if (item.emptyImagePlaceholder && item.placeholderImageDark) { %>
+              <img
+                data-gallery-main-image
+                src="<%= item.imageUrl %>"
+                alt="<%= item.title %>"
+                loading="eager"
+                referrerpolicy="no-referrer"
+                class="absolute inset-0 h-full w-full object-cover dark:hidden"
+                onerror="
+                  this.onerror = null;
+                  this.src = '/images/hero-bg.jpg';
+                "
+              />
+              <img
+                src="<%= item.placeholderImageDark %>"
+                alt=""
+                loading="eager"
+                referrerpolicy="no-referrer"
+                class="pointer-events-none absolute inset-0 hidden h-full w-full object-cover dark:block"
+                onerror="
+                  this.onerror = null;
+                  this.src = '/images/hero-bg.jpg';
+                "
+              />
+              <% } else { %>
+              <img
+                src="<%= safeGalleryImages[0] %>"
+                alt="<%= item.title %>"
+                loading="eager"
+                referrerpolicy="no-referrer"
+                data-gallery-main-image
+                onerror="
+                  this.onerror = null;
+                  this.src = '/images/hero-bg.jpg';
+                "
+              />
+              <% } %>
+              <span class="item-gallery__expand"><i class="bi bi-arrows-fullscreen"></i> Tap to expand</span>
+            </div>
+            <div class="item-gallery__thumbs">
+              <% safeGalleryImages.forEach((imgUrl, idx) => { %>
+              <button
+                type="button"
+                class="item-gallery__thumb <%= idx === 0 ? 'is-active' : '' %>"
+                data-gallery-thumb
+                data-src="<%= imgUrl %>"
+                aria-label="View photo <%= idx + 1 %>"
+              >
+                <img
+                  src="<%= imgUrl %>"
+                  alt=""
+                  loading="lazy"
+                  referrerpolicy="no-referrer"
+                  onerror="
+                    this.onerror = null;
+                    this.src = '/images/hero-bg.jpg';
+                  "
+                />
+              </button>
+              <% }); %>
+            </div>
+          </div>
+          <p class="item-gallery__reported text-xs text-muted-custom mb-0">
+            <i class="bi bi-clock me-1" aria-hidden="true"></i>Reported on
+            <%= new Date(item.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %>
+          </p>
+        </div>
+      </div>
+
+      <!-- Right: detail cards scroll with the page; gallery column uses sticky rail -->
+      <div class="item-content">
+        <div class="card-surface" style="padding: 18px">
+          <!-- Status badges -->
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="status-pill <%= item.type === 'lost' ? 'status-pill--lost' : 'status-pill--found' %>">
+              <i class="bi <%= item.type === 'lost' ? 'bi-exclamation-circle' : 'bi-check-circle' %> me-1"></i>
+              <%= item.type.charAt(0).toUpperCase() + item.type.slice(1) %>
+            </span>
+            <span class="item-card__category"><%= item.category %></span>
+            <% if (item.status === 'claimed') { %>
+            <span class="status-pill status-pill--claimed"><i class="bi bi-patch-check me-1"></i>Claimed</span>
+            <% } %>
+          </div>
+
+          <h1 class="text-xl sm:text-2xl font-bold text-main mb-2"><%= item.title %></h1>
+          <p class="text-sm leading-relaxed text-secondary mb-4"><%= item.description %></p>
+
+          <!-- Metadata grid -->
+          <div class="item-detail-meta">
+            <div>
+              <small class="item-detail-meta__label">Location</small>
+              <span class="item-detail-meta__value"
+                ><i class="bi bi-geo-alt me-1"></i
+                ><%= item.location %></span
+              >
+            </div>
+            <div>
+              <small class="item-detail-meta__label">Date</small>
+              <span class="item-detail-meta__value"
+                ><i class="bi bi-calendar-event me-1"></i
+                ><%= item.date %></span
+              >
+            </div>
+            <div>
+              <small class="item-detail-meta__label">Reporter</small>
+              <div class="item-detail-reporter-slot" data-reporter-privacy-slot>
+                <button
+                  type="button"
+                  class="item-detail-reporter-btn"
+                  data-reporter-privacy-trigger
+                  aria-expanded="false"
+                  aria-controls="reporter-privacy-tip-<%= item.id %>"
+                  title="Privacy protected. Public listings never show reporter email or account IDs. Use the contact request flow so details stay controlled."
+                >
+                  <span class="item-detail-meta__value item-detail-meta__value--reporter">
+                    <i class="bi bi-person-circle me-1" aria-hidden="true"></i
+                    ><span class="item-detail-reporter-text"
+                      ><% if (typeof isOwner !== 'undefined' && isOwner) { %>You<% } else if (typeof isAdmin !== 'undefined' && isAdmin && itemPrivate && itemPrivate.contactName && String(itemPrivate.contactName).trim()) { %><%= itemPrivate.contactName %><% } else { %><%= item.publicReporterLabel %><% } %></span
+                    >
+                  </span>
+                </button>
+                <div
+                  id="reporter-privacy-tip-<%= item.id %>"
+                  class="item-detail-reporter-tip"
+                  data-reporter-privacy-tip
+                  role="tooltip"
+                  hidden
+                >
+                  Privacy protected. Public listings never show reporter email or account IDs. Use the contact request
+                  flow so details stay controlled.
+                </div>
+              </div>
+            </div>
+          </div>
+          <% if (itemPrivate && (isOwner || isAdmin)) { %>
+          <div class="rounded-xl p-3 mt-3" style="background: var(--surface-2); border: 1px solid var(--border)">
+            <small class="item-detail-meta__label"
+              ><%= isOwner ? 'Your contact on file' : 'Reporter contact (admin)' %></small
+            >
+            <p class="text-sm font-medium text-main mb-0.5 mt-1"><%= itemPrivate.contactName %></p>
+            <p class="text-sm text-secondary mb-0"><%= itemPrivate.contactEmail %></p>
+          </div>
+          <% } %>
+        </div>
+
+        <!-- Action card -->
+        <div class="card-surface" style="padding: 18px">
+          <h3 class="text-sm font-bold text-main mb-1"><i class="bi bi-chat-dots me-1"></i>Contact & Claim</h3>
+          <p class="text-xs text-secondary mb-3">Email stays private until a request is approved by the owner.</p>
+
+          <% if (!user) { %>
+          <a href="/login?next=<%= encodeURIComponent('/items/' + item.id) %>" class="btn btn-primary w-full">
+            <i class="bi bi-box-arrow-in-right me-1"></i><span class="sm:hidden">Login</span
+            ><span class="hidden sm:inline">Log in to contact</span>
+          </a>
+          <% } else if (item.status !== 'claimed' && !isOwner && !isAdmin && item.canReceiveRequests) { %>
+          <% if (ownRequest && ownRequest.status === 'pending') { %>
+          <div class="flex items-center gap-2 flex-wrap mb-3">
+            <span class="status-pill status-pill--lost">Contact request pending</span>
+            <form
+              method="POST"
+              action="/items/<%= item.id %>/contact-request/<%= ownRequest.id %>/cancel"
+              class="inline"
+            >
+              <button class="btn btn-secondary btn-sm" type="submit">
+                <i class="bi bi-slash-circle me-1"></i>Cancel
+              </button>
+            </form>
+          </div>
+          <% } else if (ownRequest && ownRequest.status === 'approved') { %>
+          <div
+            class="rounded-xl p-4 mb-3"
+            style="background: rgba(46, 216, 163, 0.06); border: 1px solid rgba(46, 216, 163, 0.2)"
+          >
+            <p class="text-sm font-semibold" style="color: #065f46">
+              <i class="bi bi-check-circle me-1"></i>Request approved
+            </p>
+            <p class="text-xs mt-1 text-secondary mb-3">Continue the conversation in your shared thread.</p>
+            <a href="/items/<%= item.id %>/contact/<%= ownRequest.id %>" class="btn btn-primary w-full btn-sm">
+              <i class="bi bi-chat-dots me-1"></i>Open conversation
+            </a>
+          </div>
+          <% } else if (ownRequest && ownRequest.status === 'closed') { %>
+          <div class="rounded-xl p-4 mb-3" style="background: var(--surface-2); border: 1px solid var(--border)">
+            <p class="text-sm font-semibold text-main mb-1">Conversation closed</p>
+            <p class="text-xs text-secondary mb-3">You can still read the message history.</p>
+            <a href="/items/<%= item.id %>/contact/<%= ownRequest.id %>" class="btn btn-outline w-full btn-sm">
+              <i class="bi bi-chat-left-text me-1"></i>View thread
+            </a>
+          </div>
+          <% } else if (ownRequest && ownRequest.status === 'rejected') { %>
+          <span class="status-pill status-pill--lost">Contact request rejected</span>
+          <% } else { %>
+          <form method="POST" action="/items/<%= item.id %>/contact-request" class="space-y-3">
+            <div class="field">
+              <label for="message" class="field-label text-sm">Message (optional)</label>
+              <textarea
+                id="message"
+                name="message"
+                class="field-input"
+                rows="2"
+                maxlength="500"
+                placeholder="Share why you think this item might be yours..."
+              ></textarea>
+            </div>
+            <% if (item.hasVerification) { %>
+            <div class="field">
+              <label for="verificationResponse" class="field-label text-sm"
+                >Verification:
+                <%= item.verificationPrompt %></label
+              >
+              <input
+                id="verificationResponse"
+                name="verificationResponse"
+                type="text"
+                class="field-input"
+                maxlength="200"
+                required
+              />
+            </div>
+            <% } %>
+            <button class="btn btn-primary w-full" type="submit"><i class="bi bi-send me-1"></i>Submit Request</button>
+          </form>
+          <% } %>
+          <% } else if (item.status !== 'claimed' && !item.canReceiveRequests) { %>
+          <div class="rounded-xl p-3" style="background: var(--surface-2); border: 1px solid var(--border)">
+            <p class="text-sm font-semibold text-main">Contact unavailable</p>
+            <p class="text-xs mt-1 text-secondary">This report has no linked owner account yet.</p>
+          </div>
+          <% } else if (item.status !== 'claimed' && isOwner) { %>
+          <a href="/requests" class="btn btn-secondary w-full mb-2">
+            <i class="bi bi-chat-square-text me-1"></i>Requests inbox
+          </a>
+          <form method="POST" action="/items/<%= item.id %>/claim-as-owner" class="mb-0">
+            <input type="hidden" name="next" value="/items/<%= item.id %>" />
+            <button class="btn btn-primary w-full" type="submit">
+              <i class="bi bi-patch-check me-1"></i>Claimed
+            </button>
+          </form>
+          <p class="text-xs text-secondary mt-2 mb-0">Use Requests to chat with people who reached out about this listing.</p>
+          <% } else if (item.status !== 'claimed' && isAdmin && !isOwner) { %>
+          <p class="text-xs text-secondary mb-0">Manage this report from the admin dashboard (edit, status, delete).</p>
+          <% } %>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<div class="item-lightbox" data-gallery-modal aria-hidden="true">
+  <button type="button" class="item-lightbox__backdrop" data-gallery-close aria-label="Close preview"></button>
+  <div class="item-lightbox__dialog" role="dialog" aria-modal="true" aria-label="Image preview">
+    <button type="button" class="item-lightbox__close" data-gallery-close aria-label="Close preview">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <div class="item-lightbox__topbar">
+      <span class="item-lightbox__counter" data-gallery-counter>1 / 1</span>
+    </div>
+    <div class="item-lightbox__stage">
+      <button
+        type="button"
+        class="item-lightbox__nav item-lightbox__nav--prev"
+        data-gallery-prev
+        aria-label="Previous photo"
+      >
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <img
+        src="<%= safeGalleryImages[0] %>"
+        alt="<%= item.title %>"
+        class="item-lightbox__image"
+        data-gallery-modal-image
+        onerror="
+          this.onerror = null;
+          this.src = '/images/hero-bg.jpg';
+        "
+      />
+      <button
+        type="button"
+        class="item-lightbox__nav item-lightbox__nav--next"
+        data-gallery-next
+        aria-label="Next photo"
+      >
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+    <div class="item-lightbox__thumbs" data-gallery-modal-thumbs>
+      <% safeGalleryImages.forEach((imgUrl, idx) => { %>
+      <button
+        type="button"
+        class="item-lightbox__thumb <%= idx === 0 ? 'is-active' : '' %>"
+        data-gallery-modal-thumb
+        data-src="<%= imgUrl %>"
+        aria-label="Select photo <%= idx + 1 %>"
+      >
+        <img
+          src="<%= imgUrl %>"
+          alt=""
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          onerror="
+            this.onerror = null;
+            this.src = '/images/hero-bg.jpg';
+          "
+        />
+      </button>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<style>
+  .item-detail-reporter-slot {
+    position: relative;
+    display: block;
+  }
+  .item-detail-reporter-btn {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: start;
+    cursor: help;
+    border-radius: 6px;
+  }
+  .item-detail-reporter-btn:hover .item-detail-meta__value--reporter,
+  .item-detail-reporter-btn:focus-visible .item-detail-meta__value--reporter {
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+  }
+  .item-detail-reporter-btn:focus-visible {
+    outline: 2px solid var(--primary, #3b82f6);
+    outline-offset: 2px;
+  }
+  .item-detail-meta__value--reporter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .item-detail-meta__value--reporter > .bi {
+    flex-shrink: 0;
+  }
+  .item-detail-reporter-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: clamp(0.72rem, 0.28rem + 1.6vw, 0.84rem);
+  }
+  .item-detail-reporter-tip {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 6px);
+    z-index: 12;
+    max-width: min(100%, 20rem);
+    padding: 0.5rem 0.65rem;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--text-secondary, #64748b);
+    background: var(--surface-2, #f1f5f9);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  }
+  [data-bs-theme="dark"] .item-detail-reporter-tip {
+    background: rgba(30, 41, 59, 0.96);
+    border-color: rgba(148, 163, 184, 0.25);
+    color: rgba(226, 232, 240, 0.88);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+  .item-gallery__hero {
+    position: relative;
+    cursor: zoom-in;
+  }
+  .item-gallery__expand {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(15, 23, 42, 0.62);
+    backdrop-filter: blur(4px);
+  }
+  .item-gallery__thumb {
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    background: transparent;
+    opacity: 0.86;
+    transition:
+      opacity 0.15s ease,
+      border-color 0.15s ease,
+      transform 0.15s ease;
+  }
+  .item-gallery__thumb:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+  .item-gallery__thumb.is-active {
+    opacity: 1;
+    border-color: var(--primary);
+  }
+
+  .item-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    place-items: center;
+  }
+  .item-lightbox.is-open {
+    display: grid;
+  }
+  .item-lightbox__backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(2, 6, 23, 0.82);
+    cursor: zoom-out;
+  }
+  .item-lightbox__dialog {
+    position: relative;
+    z-index: 1;
+    width: min(1040px, 94vw);
+    max-height: 92vh;
+    display: grid;
+    gap: 12px;
+  }
+  .item-lightbox__topbar {
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .item-lightbox__counter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 66px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    background: rgba(15, 23, 42, 0.56);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+  }
+  .item-lightbox__close {
+    position: fixed;
+    top: max(10px, calc(env(safe-area-inset-top, 0px) + 10px));
+    right: max(10px, calc(env(safe-area-inset-right, 0px) + 10px));
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    color: #fff;
+    z-index: 3;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.32);
+  }
+  .item-lightbox__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+  .item-lightbox__image {
+    width: 100%;
+    max-height: 78vh;
+    object-fit: contain;
+    border-radius: 16px;
+    background: #0b1220;
+    box-shadow: 0 24px 50px rgba(15, 23, 42, 0.45);
+  }
+  .item-lightbox__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    background: rgba(15, 23, 42, 0.72);
+    color: #fff;
+    z-index: 2;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+    transition:
+      transform 0.18s ease,
+      background-color 0.18s ease;
+  }
+  .item-lightbox__nav:hover {
+    transform: translateY(-50%) scale(1.04);
+    background: rgba(15, 23, 42, 0.84);
+  }
+  .item-lightbox__nav[hidden] {
+    display: none !important;
+  }
+  .item-lightbox__nav--prev {
+    left: 12px;
+  }
+  .item-lightbox__nav--next {
+    right: 12px;
+  }
+  .item-lightbox__thumbs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px 4px 0;
+  }
+  .item-lightbox__thumb {
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 0;
+    overflow: hidden;
+    flex: 0 0 74px;
+    height: 58px;
+    background: transparent;
+    opacity: 0.78;
+    transition:
+      opacity 0.15s ease,
+      border-color 0.15s ease,
+      transform 0.15s ease;
+  }
+  .item-lightbox__thumb:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+  .item-lightbox__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .item-lightbox__thumb.is-active {
+    opacity: 1;
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+  }
+  @media (max-width: 640px) {
+    .item-lightbox__dialog {
+      width: 96vw;
+    }
+    .item-lightbox__image {
+      max-height: 66vh;
+    }
+    .item-lightbox__nav {
+      width: 34px;
+      height: 34px;
+    }
+    .item-lightbox__nav--prev {
+      left: 8px;
+    }
+    .item-lightbox__nav--next {
+      right: 8px;
+    }
+    .item-lightbox__close {
+      top: max(8px, calc(env(safe-area-inset-top, 0px) + 8px));
+      right: max(8px, calc(env(safe-area-inset-right, 0px) + 8px));
+      width: 38px;
+      height: 38px;
+    }
+  }
+</style>
+
+<script>
+  (() => {
+    try {
+      if (new URLSearchParams(window.location.search).get("posted") === "1") {
+        indexedDB.deleteDatabase("findit-report");
+        const u = new URL(window.location.href);
+        u.searchParams.delete("posted");
+        const qs = u.searchParams.toString();
+        window.history.replaceState({}, "", u.pathname + (qs ? `?${qs}` : "") + u.hash);
+      }
+    } catch (_e) {}
+  })();
+</script>
+
+<script>
+  (() => {
+    const slot = document.querySelector("[data-reporter-privacy-slot]");
+    const btn = document.querySelector("[data-reporter-privacy-trigger]");
+    const tip = document.querySelector("[data-reporter-privacy-tip]");
+    if (!slot || !btn || !tip) return;
+
+    const close = () => {
+      btn.setAttribute("aria-expanded", "false");
+      tip.hidden = true;
+    };
+    const open = () => {
+      btn.setAttribute("aria-expanded", "true");
+      tip.hidden = false;
+    };
+
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (btn.getAttribute("aria-expanded") === "true") {
+        close();
+      } else {
+        open();
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!slot.contains(e.target)) {
+        close();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && btn.getAttribute("aria-expanded") === "true") {
+        close();
+      }
+    });
+  })();
+</script>
+
+<script>
+  (() => {
+    const mainImage = document.querySelector("[data-gallery-main-image]");
+    const thumbs = Array.from(document.querySelectorAll("[data-gallery-thumb]"));
+    const openTrigger = document.querySelector("[data-gallery-open]");
+    const modal = document.querySelector("[data-gallery-modal]");
+    const modalImage = document.querySelector("[data-gallery-modal-image]");
+    const modalThumbs = Array.from(document.querySelectorAll("[data-gallery-modal-thumb]"));
+    const btnPrev = document.querySelector("[data-gallery-prev]");
+    const btnNext = document.querySelector("[data-gallery-next]");
+    const counter = document.querySelector("[data-gallery-counter]");
+    const closeBtns = Array.from(document.querySelectorAll("[data-gallery-close]"));
+    if (!mainImage || !thumbs.length || !modal || !modalImage) return;
+
+    const images = thumbs.map((thumb) => thumb.getAttribute("data-src")).filter(Boolean);
+    if (!images.length) return;
+    let currentIndex = 0;
+
+    const setActive = (index) => {
+      currentIndex = Math.max(0, Math.min(index, images.length - 1));
+      const src = images[currentIndex];
+      mainImage.src = src;
+      modalImage.src = src;
+      thumbs.forEach((thumb, idx) => thumb.classList.toggle("is-active", idx === currentIndex));
+      modalThumbs.forEach((thumb, idx) => thumb.classList.toggle("is-active", idx === currentIndex));
+      if (counter) {
+        counter.textContent = `${currentIndex + 1} / ${images.length}`;
+      }
+      if (btnPrev) btnPrev.hidden = currentIndex === 0;
+      if (btnNext) btnNext.hidden = currentIndex === images.length - 1;
+    };
+
+    const openModal = () => {
+      modal.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    };
+    const closeModal = () => {
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    };
+
+    thumbs.forEach((thumb, idx) => thumb.addEventListener("click", () => setActive(idx)));
+    modalThumbs.forEach((thumb, idx) => thumb.addEventListener("click", () => setActive(idx)));
+    if (btnPrev) btnPrev.addEventListener("click", () => setActive(currentIndex - 1));
+    if (btnNext) btnNext.addEventListener("click", () => setActive(currentIndex + 1));
+    closeBtns.forEach((btn) => btn.addEventListener("click", closeModal));
+    openTrigger.addEventListener("click", openModal);
+    openTrigger.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openModal();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (!modal.classList.contains("is-open")) return;
+      if (event.key === "Escape") closeModal();
+      if (event.key === "ArrowLeft" && currentIndex > 0) setActive(currentIndex - 1);
+      if (event.key === "ArrowRight" && currentIndex < images.length - 1) setActive(currentIndex + 1);
+    });
+
+    setActive(0);
+  })();
+</script>

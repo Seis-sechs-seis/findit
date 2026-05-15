@@ -1,0 +1,112 @@
+<section class="py-10 sm:py-14 bg-page min-h-screen">
+  <div class="gutter max-w-4xl mx-auto">
+    <div class="card-surface legal-hero">
+      <span class="legal-hero__eyebrow">privacy</span>
+      <h1 class="title mb-2">Privacy Policy</h1>
+      <p class="text-secondary text-sm mb-0">How FindIt collects, uses, and protects your information.</p>
+      <p class="text-xs text-muted-custom mt-3 mb-0">Last updated: <%= updatedAt %></p>
+    </div>
+
+    <div class="card-surface legal-body">
+      <h2>1. information we collect</h2>
+      <ul>
+        <li>account information (name, email, profile image if provided)</li>
+        <li>report data (item details, category, location, timestamps)</li>
+        <li>contact request messages and verification responses</li>
+        <li>technical and security logs (IP, device/session metadata)</li>
+      </ul>
+
+      <h2>2. how we use your information</h2>
+      <p>
+        We use collected data to operate the platform, match lost/found reports, support claim verification, prevent
+        abuse, and improve reliability and security.
+      </p>
+
+      <h2>3. contact visibility and sharing</h2>
+      <p>
+        Contact details are limited and shared only as needed within approved recovery workflows. We do not publish
+        private contact information publicly by default.
+      </p>
+
+      <h2>4. data retention</h2>
+      <p>
+        We retain data only as necessary for legitimate operational, security, legal, and dispute-resolution purposes,
+        then delete or anonymize where appropriate.
+      </p>
+
+      <h2>5. security practices</h2>
+      <p>
+        We apply reasonable administrative and technical safeguards. However, no online system can guarantee absolute
+        security.
+      </p>
+
+      <h2>6. your choices</h2>
+      <ul>
+        <li>update profile and report details from your account</li>
+        <li>remove report content when no longer needed</li>
+        <li>request account-related support through platform administrators</li>
+      </ul>
+
+      <h2>7. cookies and session storage</h2>
+      <p>
+        We use session mechanisms required for authentication, security, and core functionality. Disabling these may
+        limit platform use.
+      </p>
+
+      <h2>8. policy updates</h2>
+      <p>
+        We may revise this policy from time to time. Material updates will be reflected on this page with a revised
+        update date.
+      </p>
+
+      <h2>9. contact</h2>
+      <p>For privacy questions or concerns, contact the platform administrators through official support channels.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .legal-hero,
+  .legal-body {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.1rem 1.2rem;
+  }
+  .legal-hero {
+    margin-bottom: 12px;
+  }
+  .legal-hero__eyebrow {
+    display: inline-flex;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--primary);
+    margin-bottom: 0.45rem;
+  }
+  .legal-body h2 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 0.45rem;
+    text-transform: capitalize;
+  }
+  .legal-body p,
+  .legal-body li {
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+  .legal-body ul {
+    margin: 0 0 0.9rem;
+    padding-left: 1rem;
+    display: grid;
+    gap: 0.2rem;
+  }
+  .legal-body h2 + p {
+    margin-top: 0;
+  }
+  .legal-body p {
+    margin: 0 0 0.95rem;
+  }
+</style>

@@ -1,0 +1,142 @@
+<section class="py-8 sm:py-12 bg-page min-h-screen">
+  <div class="gutter max-w-3xl mx-auto">
+    <h1 class="title mb-1">Requests</h1>
+    <p class="text-secondary text-sm mb-4">
+      Contact threads for your reports and claims. Open a ticket to keep the conversation in one place.
+    </p>
+
+    <% if (!rowsAll || rowsAll.length === 0) { %>
+    <div class="card-surface border-base rounded-2xl p-8 text-center" style="border: 1px solid var(--border)">
+      <i class="bi bi-inbox text-4xl text-muted-custom d-block mb-3"></i>
+      <p class="text-main font-medium mb-1">No requests yet</p>
+      <p class="text-sm text-secondary mb-4">When someone contacts you about a listing — or you reach out — it shows up here.</p>
+      <a href="/items" class="btn btn-primary btn-sm">Browse</a>
+    </div>
+    <% } else { %>
+    <div class="requests-view-toolbar mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div class="requests-view-seg inline-flex w-full max-w-md rounded-full border border-base bg-surface-2 p-0.5 sm:w-auto">
+        <a
+          href="/requests?view=approved"
+          class="requests-view-seg__btn <%= requestsView === 'approved' ? 'is-active' : '' %> flex-1 text-center no-underline sm:flex-initial"
+        >
+          Approved<% if (typeof countApprovedTab === 'number') { %><span class="requests-view-seg__count"><%= countApprovedTab %></span><% } %>
+        </a>
+        <a
+          href="/requests?view=closed"
+          class="requests-view-seg__btn <%= requestsView === 'closed' ? 'is-active' : '' %> flex-1 text-center no-underline sm:flex-initial"
+        >
+          Closed<% if (typeof countClosedTab === 'number') { %><span class="requests-view-seg__count"><%= countClosedTab %></span><% } %>
+        </a>
+      </div>
+      <p class="text-xs text-secondary mb-0 sm:max-w-xs sm:text-end">
+        <% if (requestsView === 'approved') { %>
+        Default: open threads and requests still awaiting a decision.
+        <% } else { %>
+        Ended threads and declined or cancelled requests.
+        <% } %>
+      </p>
+    </div>
+
+    <% if (!rows || rows.length === 0) { %>
+    <div class="card-surface border-base rounded-2xl p-8 text-center" style="border: 1px solid var(--border)">
+      <i class="bi bi-funnel text-3xl text-muted-custom d-block mb-3"></i>
+      <p class="text-main font-medium mb-1">
+        <%= requestsView === 'closed' ? 'Nothing in Closed' : 'Nothing in Approved' %>
+      </p>
+      <p class="text-sm text-secondary mb-4">
+        <% if (requestsView === 'closed') { %>
+        When you close a thread or a request is rejected or cancelled, it appears here.
+        <% } else { %>
+        Approved conversations and pending requests you still need to act on show here.
+        <% } %>
+      </p>
+      <a
+        href="/requests?view=<%= requestsView === 'closed' ? 'approved' : 'closed' %>"
+        class="btn btn-outline btn-sm"
+      >
+        Show <%= requestsView === 'closed' ? 'approved' : 'closed' %>
+      </a>
+    </div>
+    <% } else { %>
+    <ul class="space-y-3 list-none p-0 m-0">
+      <% rows.forEach(({ request: r, item: it, perspective }) => { %>
+      <li>
+        <article class="card-surface border-base rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" style="border: 1px solid var(--border)">
+          <div class="min-w-0">
+            <p class="text-xs font-bold uppercase tracking-wide text-secondary mb-1">
+              <%= perspective === 'incoming' ? 'Incoming' : 'Your request' %>
+            </p>
+            <p class="font-semibold text-main mb-0 truncate">
+              <%= it ? it.title : 'Item removed' %>
+            </p>
+            <p class="text-xs text-secondary mt-1 mb-0">
+              #<%= r.id %>
+              ·
+              <span
+                class="status-pill <%= r.status === 'approved' ? 'status-pill--found' : r.status === 'pending' ? 'status-pill--claimed' : '' %>"
+                style="<%= r.status === 'closed' ? 'background: rgba(148,163,184,0.15);' : '' %>"
+                ><%= r.status %></span
+              >
+            </p>
+          </div>
+          <div class="flex shrink-0 gap-2">
+            <a href="/items/<%= r.itemId %>/contact/<%= r.id %>" class="btn btn-primary btn-sm">
+              <i class="bi bi-chat-dots me-1"></i>Thread
+            </a>
+            <% if (it) { %>
+            <a href="/items/<%= r.itemId %>" class="btn btn-outline btn-sm">
+              <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>Listing
+            </a>
+            <% } %>
+          </div>
+        </article>
+      </li>
+      <% }) %>
+    </ul>
+    <% } %>
+    <% } %>
+  </div>
+</section>
+
+<style>
+  .requests-view-seg__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    transition:
+      color 0.15s ease,
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .requests-view-seg__btn:hover {
+    color: var(--text);
+    background: color-mix(in srgb, var(--surface) 88%, var(--page));
+  }
+  .requests-view-seg__btn.is-active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .requests-view-seg__count {
+    display: inline-flex;
+    min-width: 1.15rem;
+    justify-content: center;
+    padding: 0 0.25rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    border-radius: 999px;
+    background: color-mix(in srgb, #fff 18%, transparent);
+    opacity: 0.95;
+  }
+  .requests-view-seg__btn:not(.is-active) .requests-view-seg__count {
+    background: color-mix(in srgb, var(--border) 55%, transparent);
+    color: var(--text-secondary);
+  }
+</style>

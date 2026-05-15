@@ -1,0 +1,27 @@
+<% const phaseLabel = phase === 'reopened' ? 'reopened' : 'closed'; %>
+<div
+  class="thread-chat-divider-wrap thread-chat-divider-wrap--instream thread-chat-divider-wrap--phase"
+  data-thread-phase="<%= phaseLabel %>"
+  role="presentation"
+>
+  <div class="thread-chat-divider thread-chat-divider--<%= phaseLabel %>" role="status">
+    <hr class="thread-chat-divider__line" aria-hidden="true" />
+    <span class="thread-chat-divider__label">
+      <span class="thread-chat-divider__status"><%= phaseLabel %></span>
+      <span class="thread-chat-divider__ref">#<%= contact.id %></span>
+      <% if (item.status === 'claimed') { %>
+      <span class="thread-chat-divider__sep" aria-hidden="true">·</span>
+      <span class="thread-chat-divider__extra">claimed</span>
+      <% } %>
+    </span>
+    <hr class="thread-chat-divider__line" aria-hidden="true" />
+  </div>
+  <% if (typeof at !== 'undefined' && at) { %>
+  <% const _pd = new Date(at); %>
+  <% if (!Number.isNaN(_pd.getTime())) { %>
+  <div class="thread-phase-stamp-wrap">
+    <time class="thread-phase-stamp__time" datetime="<%= _pd.toISOString() %>"><%= formatThreadTime(at) %></time>
+  </div>
+  <% } %>
+  <% } %>
+</div>

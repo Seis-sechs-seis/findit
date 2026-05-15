@@ -1,0 +1,797 @@
+<section class="py-10 sm:py-14 bg-page min-h-screen">
+  <div class="gutter">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="title mb-1">Browse Reports</h1>
+      <p class="text-secondary text-sm">Search and filter public lost and found listings.</p>
+    </div>
+
+    <!-- Search & Filter -->
+    <form method="GET" action="/items" id="browse-items-form" class="mb-6">
+      <input type="hidden" name="type" id="browse-type" value="<%= filters.type %>" />
+
+      <div class="mb-3">
+        <div class="flex items-center gap-2">
+          <div class="relative min-w-0 flex-1">
+            <span class="browse-search-icon absolute top-1/2 -translate-y-1/2 text-muted-custom pointer-events-none"
+              ><i class="bi bi-search text-sm"></i
+            ></span>
+            <input
+              type="text"
+              class="field-input browse-search-input text-sm"
+              id="search"
+              name="search"
+              placeholder="Search by title, location, or description..."
+              value="<%= filters.search %>"
+            />
+          </div>
+
+          <!-- Filters: same sliders panel on all breakpoints (cleaner than a full desktop toolbar) -->
+          <details class="browse-m-filter group relative shrink-0">
+            <summary
+              class="browse-m-filter__trigger list-none cursor-pointer"
+              aria-label="Filters: report type, category, and view"
+            >
+              <i class="bi bi-sliders text-lg"></i>
+            </summary>
+            <div
+              class="browse-m-filter__panel card-surface border-base shadow-theme-lg"
+              style="border: 1px solid var(--border)"
+            >
+              <p class="text-xs font-bold text-main uppercase tracking-wide mb-2">Report type</p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <button
+                  type="button"
+                  class="filter-tab browse-type-btn <%= filters.type === 'all' ? 'active' : '' %>"
+                  data-browse-type="all"
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  class="filter-tab browse-type-btn <%= filters.type === 'lost' ? 'active' : '' %>"
+                  data-browse-type="lost"
+                >
+                  <span class="inline-block w-2 h-2 rounded-full mr-1" style="background: var(--danger)"></span>Lost
+                </button>
+                <button
+                  type="button"
+                  class="filter-tab browse-type-btn <%= filters.type === 'found' ? 'active' : '' %>"
+                  data-browse-type="found"
+                >
+                  <span class="inline-block w-2 h-2 rounded-full mr-1" style="background: var(--success)"></span>Found
+                </button>
+              </div>
+              <label for="browse-category-mob" class="text-xs font-bold text-main uppercase tracking-wide mb-1.5 block"
+                >Category</label
+              >
+              <select id="browse-category-mob" class="field-input browse-panel-select text-sm w-full cursor-pointer">
+                <% if (filters.category === 'all') { %>
+                <option value="all" selected>All Categories</option>
+                <% } else { %>
+                <option value="all">All Categories</option>
+                <% } %>
+                <% categories.forEach(cat => { %>
+                <% if (filters.category === cat) { %>
+                <option value="<%= cat %>" selected><%= cat %></option>
+                <% } else { %>
+                <option value="<%= cat %>"><%= cat %></option>
+                <% } %>
+                <% }) %>
+              </select>
+              <label
+                class="browse-show-claimed-label flex items-start gap-2.5 mt-4 cursor-pointer select-none"
+                for="browse-show-claimed"
+              >
+                <input
+                  type="checkbox"
+                  name="showClaimed"
+                  value="1"
+                  id="browse-show-claimed"
+                  class="mt-0.5 shrink-0"
+                  <%= filters.showClaimed ? 'checked' : '' %>
+                />
+                <span class="text-sm text-secondary leading-snug">Include claimed reports</span>
+              </label>
+              <p class="text-xs font-bold text-main uppercase tracking-wide mt-4 mb-1.5 block">View</p>
+              <div class="browse-layout-options flex flex-col gap-1" role="group" aria-label="Result layout">
+                <button type="button" class="browse-layout-option" data-browse-layout="grid" aria-pressed="true">
+                  <i class="bi bi-grid-3x2-gap shrink-0" aria-hidden="true"></i><span>Grid</span>
+                </button>
+                <button type="button" class="browse-layout-option" data-browse-layout="list" aria-pressed="false">
+                  <i class="bi bi-list-ul shrink-0" aria-hidden="true"></i><span>List</span>
+                </button>
+                <button type="button" class="browse-layout-option" data-browse-layout="compact" aria-pressed="false">
+                  <i class="bi bi-grid-fill shrink-0" aria-hidden="true"></i><span>Compact</span>
+                </button>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Syncs with #browse-category-mob; hidden so GET ?category= still works from one control -->
+      <select name="category" id="browse-category" class="hidden" aria-hidden="true" tabindex="-1">
+        <% if (filters.category === 'all') { %>
+        <option value="all" selected>All Categories</option>
+        <% } else { %>
+        <option value="all">All Categories</option>
+        <% } %>
+        <% categories.forEach(cat => { %>
+        <% if (filters.category === cat) { %>
+        <option value="<%= cat %>" selected><%= cat %></option>
+        <% } else { %>
+        <option value="<%= cat %>"><%= cat %></option>
+        <% } %>
+        <% }) %>
+      </select>
+    </form>
+
+    <div class="browse-results-region" id="browse-results-region" data-browse-results>
+      <div class="browse-results-head mb-2 pt-2">
+        <p
+          class="browse-results-count mb-0 text-start text-xs text-muted-custom"
+          data-browse-count
+          aria-live="polite"
+        >
+          <%= items.length %> result<%= items.length !== 1 ? 's' : '' %>
+        </p>
+      </div>
+
+      <div class="browse-items-stage">
+        <div class="browse-items-content" data-browse-content>
+          <%- include('partials/browse-items-body', {
+            items,
+            browseSearchQuery,
+            highlightBrowseMatches,
+            escapeHtml,
+          }) %>
+        </div>
+        <div
+          id="browse-items-skeleton"
+          class="browse-items-skeleton"
+          hidden
+          aria-hidden="true"
+          aria-busy="false"
+        >
+          <div class="browse-items-skeleton-inner">
+            <% for (let sk = 0; sk < 6; sk++) { %>
+            <div class="browse-skel-card">
+              <div class="browse-skel-card__media skeleton-shimmer" aria-hidden="true"></div>
+              <div class="browse-skel-card__row skeleton-shimmer browse-skel-card__row--short" aria-hidden="true"></div>
+              <div class="browse-skel-card__row skeleton-shimmer browse-skel-card__row--mid" aria-hidden="true"></div>
+              <div class="browse-skel-card__row skeleton-shimmer" aria-hidden="true"></div>
+            </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .item-card {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    transition: box-shadow 0.28s ease !important;
+    transform: none !important;
+  }
+  .item-card:hover,
+  .item-card:active,
+  .item-card:focus-within {
+    transform: none !important;
+  }
+  .item-card__ink {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .item-card__ripple {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.2;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--primary) 20%, transparent) 0%,
+      color-mix(in srgb, var(--primary) 12%, transparent) 42%,
+      transparent 70%
+    );
+    animation: browseRipple 820ms cubic-bezier(0.2, 0.65, 0.2, 1);
+    z-index: 3;
+  }
+  @keyframes browseRipple {
+    40% {
+      opacity: 0.16;
+    }
+    to {
+      transform: translate(-50%, -50%) scale(10);
+      opacity: 0;
+    }
+  }
+  .item-card > *:not(.item-card__ink) {
+    position: relative;
+    z-index: 1;
+  }
+  .browse-m-filter summary::-webkit-details-marker {
+    display: none;
+  }
+  .browse-m-filter summary {
+    list-style: none;
+  }
+  /* Trigger size drives caret position so the popover arrow stays under the round button. */
+  .browse-m-filter {
+    --browse-m-filter-trigger-size: 3rem;
+    --browse-m-filter-caret-outer: 11px;
+    --browse-m-filter-caret-inner: 10px;
+  }
+  #browse-items-form .browse-search-icon {
+    left: 1rem;
+  }
+  #browse-items-form .browse-search-input {
+    border-radius: 9999px;
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+    padding-left: 2.5rem;
+    padding-right: 1.25rem;
+    min-height: 3rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  }
+  [data-bs-theme="dark"] #browse-items-form .browse-search-input {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  }
+  .browse-m-filter__trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--browse-m-filter-trigger-size, 3rem);
+    height: var(--browse-m-filter-trigger-size, 3rem);
+    min-width: var(--browse-m-filter-trigger-size, 3rem);
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    transition:
+      border-color 0.15s ease,
+      color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  .browse-m-filter__trigger:hover {
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+  .browse-m-filter__trigger:focus-visible {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-bg);
+    color: var(--primary);
+  }
+  .browse-m-filter[open] .browse-m-filter__trigger {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .browse-m-filter__panel {
+    position: absolute;
+    inset-inline-end: 0;
+    top: calc(100% + 6px);
+    z-index: 40;
+    width: min(20rem, calc(100vw - 2rem));
+    padding: 1rem 1rem 1.1rem;
+    border-radius: 1.25rem;
+    overflow: visible;
+  }
+  /* Caret pointing up at the filter trigger (border + fill). */
+  .browse-m-filter__panel::before,
+  .browse-m-filter__panel::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: calc(var(--browse-m-filter-trigger-size, 3rem) / 2 - var(--browse-m-filter-caret-outer, 11px));
+    pointer-events: none;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-color: transparent;
+  }
+  .browse-m-filter__panel::before {
+    top: calc(-1 * var(--browse-m-filter-caret-outer, 11px));
+    border-width: 0 var(--browse-m-filter-caret-outer, 11px) var(--browse-m-filter-caret-outer, 11px)
+      var(--browse-m-filter-caret-outer, 11px);
+    border-bottom-color: var(--border);
+    z-index: 1;
+  }
+  .browse-m-filter__panel::after {
+    top: calc(-1 * var(--browse-m-filter-caret-inner, 10px) + 1px);
+    inset-inline-end: calc(var(--browse-m-filter-trigger-size, 3rem) / 2 - var(--browse-m-filter-caret-inner, 10px));
+    border-width: 0 var(--browse-m-filter-caret-inner, 10px) var(--browse-m-filter-caret-inner, 10px)
+      var(--browse-m-filter-caret-inner, 10px);
+    border-bottom-color: var(--surface);
+    z-index: 2;
+  }
+  #browse-items-form .browse-panel-select {
+    border-radius: 9999px;
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+    padding-left: 1.1rem;
+  }
+  /* Custom chevron so the arrow sits inset from the pill curve (native arrow hugs the edge). */
+  #browse-items-form select.browse-panel-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 2.95rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 0.9rem;
+  }
+  #browse-items-form select.browse-panel-select::-ms-expand {
+    display: none;
+  }
+  [data-bs-theme="dark"] #browse-items-form select.browse-panel-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  }
+  .browse-layout-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    border-radius: 0.75rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: start;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
+      color 0.15s ease;
+  }
+  .browse-layout-option:hover {
+    border-color: var(--border-strong);
+    background: var(--surface-2);
+  }
+  .browse-layout-option[aria-pressed="true"] {
+    border-color: var(--primary);
+    background: var(--primary-bg);
+    color: var(--primary);
+  }
+  .browse-card-desc-preview {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+  .browse-items-root--list .browse-card-desc-preview {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+  .browse-items-inner {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 640px) {
+    .browse-items-root--grid .browse-items-inner {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .browse-items-root--grid .browse-items-inner {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .browse-items-root--list .browse-items-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+  .browse-items-root--list .item-card {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 7.25rem) minmax(0, 1fr);
+    grid-template-rows: auto auto auto 1fr;
+    column-gap: 1rem;
+    row-gap: 0.25rem;
+    align-items: start;
+  }
+  .browse-items-root--list .item-card__ink {
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+  }
+  .browse-items-root--list .item-card__media {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: stretch;
+    width: 100%;
+    aspect-ratio: auto;
+    min-height: 5.5rem;
+    max-height: 9.5rem;
+  }
+  .browse-items-root--list .item-card__media img {
+    height: 100%;
+    min-height: 5.5rem;
+    max-height: 9.5rem;
+    object-fit: cover;
+  }
+  .browse-items-root--list .item-card__sample-badge {
+    padding: 0.16rem 0.36rem;
+    font-size: 0.46rem;
+    letter-spacing: 0.05em;
+  }
+  .browse-items-root--list .item-card__head {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .browse-items-root--list .item-card__title {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .browse-items-root--list .item-card__desc {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  .browse-items-root--list .item-card__meta-row {
+    grid-column: 2;
+    grid-row: 4;
+    align-self: end;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    min-width: 0;
+  }
+  .browse-items-root--list .item-card__meta {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .browse-items-root--list .item-card__view {
+    flex: 0 0 auto;
+    width: auto;
+    margin-top: 0;
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+    padding-left: 0.65rem;
+    padding-right: 0.65rem;
+  }
+  .browse-items-root--list .item-card__view-label {
+    margin-right: 0.35rem;
+  }
+  .browse-items-root--list .item-card__view-arrow {
+    margin-left: 0;
+  }
+  @media (max-width: 639px) {
+    .browse-items-root--list .item-card {
+      grid-template-columns: minmax(4.75rem, 6rem) minmax(0, 1fr);
+      column-gap: 0.75rem;
+    }
+    .browse-items-root--list .item-card__media,
+    .browse-items-root--list .item-card__media img {
+      min-height: 4.75rem;
+    }
+    .browse-items-root--list .item-card__view-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  }
+  @media (min-width: 640px) {
+    .browse-items-root--list .item-card__view {
+      min-width: 0;
+      min-height: 0;
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+    .browse-items-root--list .item-card__view-label {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0 0.35rem 0 0;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+    }
+  }
+  .browse-items-root--compact .browse-items-inner {
+    gap: 0.65rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (min-width: 640px) {
+    .browse-items-root--compact .browse-items-inner {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .browse-items-root--compact .browse-items-inner {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .browse-items-root--compact .item-card {
+    padding: 12px;
+    gap: 8px;
+  }
+  .browse-items-root--compact .item-card__title {
+    font-size: 0.92rem;
+  }
+  .browse-items-root--compact .item-card__desc {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .browse-items-root--compact .item-card__media {
+    aspect-ratio: 5 / 3;
+  }
+
+  .filter-tab {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.875rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-tab:hover {
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+  .filter-tab.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .filter-select {
+    background: var(--surface);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 2.15rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.68rem center;
+    background-size: 0.9rem;
+  }
+  .filter-select::-ms-expand {
+    display: none;
+  }
+  [data-bs-theme="dark"] .filter-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  }
+</style>
+
+<script>
+  (() => {
+    const form = document.querySelector("#browse-items-form");
+    if (!form) return;
+    const search = form.querySelector("#search");
+    const typeInput = form.querySelector("#browse-type");
+    const categorySelect = form.querySelector("#browse-category");
+    const categoryMob = form.querySelector("#browse-category-mob");
+    const resultsRegion = document.getElementById("browse-results-region");
+    const browseContent = document.querySelector("[data-browse-content]");
+    const browseSkel = document.getElementById("browse-items-skeleton");
+    const browseCount = document.querySelector("[data-browse-count]");
+    let debounceTimer;
+    let partialAbort;
+
+    const submitLive = () => form.requestSubmit();
+
+    function setPartialLoading(on) {
+      const root = document.getElementById("browse-items-root");
+      if (browseSkel) {
+        if (on) {
+          browseSkel.hidden = false;
+          browseSkel.setAttribute("aria-hidden", "false");
+          browseSkel.setAttribute("aria-busy", "true");
+        } else {
+          browseSkel.hidden = true;
+          browseSkel.setAttribute("aria-hidden", "true");
+          browseSkel.setAttribute("aria-busy", "false");
+        }
+      }
+      if (root) {
+        root.classList.toggle("browse-items-root--loading", on);
+        if (on) root.setAttribute("aria-busy", "true");
+        else root.removeAttribute("aria-busy");
+      }
+    }
+
+    function buildBrowseQueryString() {
+      const params = new URLSearchParams(new FormData(form));
+      params.delete("partial");
+      return params.toString();
+    }
+
+    async function runBrowsePartialFetch() {
+      const qs = buildBrowseQueryString();
+      const fetchUrl = `/items${qs ? `?${qs}&` : "?"}partial=1`;
+      partialAbort?.abort();
+      partialAbort = new AbortController();
+      setPartialLoading(true);
+      try {
+        const res = await fetch(fetchUrl, {
+          method: "GET",
+          credentials: "same-origin",
+          signal: partialAbort.signal,
+          headers: {
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+          },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data || data.ok !== true || typeof data.html !== "string") {
+          throw new Error("browse_partial_failed");
+        }
+        if (browseContent) {
+          browseContent.innerHTML = data.html;
+        }
+        if (browseCount) {
+          const n = Number(data.count) || 0;
+          browseCount.textContent = `${n} result${n !== 1 ? "s" : ""}`;
+        }
+        const nextUrl = `/items${qs ? `?${qs}` : ""}`;
+        window.history.pushState({}, "", nextUrl);
+        window.dispatchEvent(new Event("browse-items-updated"));
+      } catch (e) {
+        if (e && e.name === "AbortError") return;
+        window.location.assign(`/items${qs ? `?${qs}` : ""}`);
+      } finally {
+        setPartialLoading(false);
+      }
+    }
+
+    if (search) {
+      search.addEventListener("input", () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = window.setTimeout(submitLive, 320);
+      });
+    }
+
+    if (categorySelect) {
+      categorySelect.addEventListener("change", submitLive);
+    }
+
+    if (categoryMob && categorySelect) {
+      categoryMob.addEventListener("change", () => {
+        categorySelect.value = categoryMob.value;
+        submitLive();
+      });
+    }
+
+    const showClaimed = form.querySelector("#browse-show-claimed");
+    if (showClaimed) {
+      showClaimed.addEventListener("change", submitLive);
+    }
+
+    const syncMobCategoryFromDesktop = () => {
+      if (categoryMob && categorySelect) {
+        categoryMob.value = categorySelect.value;
+      }
+    };
+    syncMobCategoryFromDesktop();
+
+    const setActiveTypeButtons = (type) => {
+      form.querySelectorAll(".browse-type-btn").forEach((btn) => {
+        const t = btn.getAttribute("data-browse-type");
+        btn.classList.toggle("active", t === type);
+      });
+    };
+
+    form.querySelectorAll(".browse-type-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const t = btn.getAttribute("data-browse-type");
+        if (!t || !typeInput) return;
+        typeInput.value = t;
+        setActiveTypeButtons(t);
+        syncMobCategoryFromDesktop();
+        submitLive();
+      });
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      runBrowsePartialFetch();
+    });
+
+    window.addEventListener("popstate", () => {
+      window.location.reload();
+    });
+
+    if (resultsRegion) {
+      resultsRegion.addEventListener("pointerdown", (event) => {
+        const card = event.target.closest(".item-card");
+        if (!card || !resultsRegion.contains(card)) return;
+        if (!(event.target instanceof Element)) return;
+        const ink = card.querySelector(".item-card__ink");
+        if (!ink) return;
+        const oldRipple = ink.querySelector(".item-card__ripple");
+        if (oldRipple) oldRipple.remove();
+        const rect = card.getBoundingClientRect();
+        const ripple = document.createElement("span");
+        ripple.className = "item-card__ripple";
+        ripple.style.left = `${event.clientX - rect.left}px`;
+        ripple.style.top = `${event.clientY - rect.top}px`;
+        ink.appendChild(ripple);
+        ripple.addEventListener("animationend", () => ripple.remove(), { once: true });
+      });
+    }
+  })();
+</script>
+<script>
+  (() => {
+    const LAYOUT_KEY = "browseItemsLayout";
+    const VALID = new Set(["grid", "list", "compact"]);
+    const getRoot = () => document.getElementById("browse-items-root");
+
+    let saved = null;
+    try {
+      saved = localStorage.getItem(LAYOUT_KEY);
+    } catch (_) {
+      /* private mode */
+    }
+    const initial = VALID.has(saved) ? saved : "grid";
+
+    const apply = (mode) => {
+      const root = getRoot();
+      if (!root || !VALID.has(mode)) return;
+      root.dataset.layout = mode;
+      root.classList.remove("browse-items-root--grid", "browse-items-root--list", "browse-items-root--compact");
+      root.classList.add(`browse-items-root--${mode}`);
+      document.querySelectorAll(".browse-layout-option[data-browse-layout]").forEach((btn) => {
+        const m = btn.getAttribute("data-browse-layout");
+        btn.setAttribute("aria-pressed", m === mode ? "true" : "false");
+      });
+      try {
+        localStorage.setItem(LAYOUT_KEY, mode);
+      } catch (_) {
+        /* ignore */
+      }
+    };
+
+    const applySaved = () => {
+      let s = null;
+      try {
+        s = localStorage.getItem(LAYOUT_KEY);
+      } catch (_) {
+        /* ignore */
+      }
+      const mode = VALID.has(s) ? s : "grid";
+      apply(mode);
+    };
+
+    applySaved();
+    window.addEventListener("browse-items-updated", applySaved);
+
+    document.querySelectorAll(".browse-layout-option[data-browse-layout]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        apply(btn.getAttribute("data-browse-layout") || "");
+        document.querySelector("details.browse-m-filter")?.removeAttribute("open");
+      });
+    });
+  })();
+</script>

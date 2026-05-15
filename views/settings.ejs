@@ -1,0 +1,217 @@
+<section class="py-10 sm:py-14 bg-page min-h-screen">
+  <div class="gutter max-w-xl mx-auto">
+    <h1 class="title mb-1">Settings</h1>
+    <p class="text-sm text-secondary mb-2">Manage your profile.</p>
+    <p class="text-xs text-muted-custom mb-8"><%= profile?.email || '' %></p>
+
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+    <div class="alert alert-danger mb-6" role="alert">
+      <ul class="fi-notice__list text-xs">
+        <% errors.forEach(err => { %>
+        <li><%= err %></li>
+        <% }) %>
+      </ul>
+    </div>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success) { %>
+    <div class="alert alert-success mb-6" role="alert" data-fi-dismiss-ms="6500"><%= success %></div>
+    <% } %>
+
+    <%
+    const letter =
+      profile && profile.email && String(profile.email).length
+        ? String(profile.email).charAt(0).toUpperCase()
+        : 'U';
+    %>
+
+    <div class="rounded-2xl bg-surface p-6 sm:p-8" style="border: 1px solid var(--border)">
+      <form
+        method="POST"
+        action="/settings"
+        enctype="multipart/form-data"
+        class="space-y-8"
+        id="settingsForm"
+      >
+        <div class="space-y-4">
+          <h2 class="text-sm font-semibold text-main">Display name</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="field">
+              <label for="settingsFirstName" class="field-label">First name</label>
+              <input
+                type="text"
+                class="field-input"
+                id="settingsFirstName"
+                name="firstName"
+                maxlength="100"
+                autocomplete="given-name"
+                required
+                value="<%= profile && profile.firstName ? profile.firstName : '' %>"
+              />
+              <div class="invalid-feedback">First name is required.</div>
+            </div>
+            <div class="field">
+              <label for="settingsLastName" class="field-label">Last name</label>
+              <input
+                type="text"
+                class="field-input"
+                id="settingsLastName"
+                name="lastName"
+                maxlength="100"
+                autocomplete="family-name"
+                required
+                value="<%= profile && profile.lastName ? profile.lastName : '' %>"
+              />
+              <div class="invalid-feedback">Last name is required.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h2 class="text-sm font-semibold text-main">Profile photo</h2>
+          <p class="text-xs text-muted-custom">
+            Pick one option. New uploads: JPG, PNG, or WEBP · max 2MB.
+          </p>
+
+          <div class="settings-avatar-grid">
+            <label class="settings-avatar-tile">
+              <input type="radio" name="avatarChoice" value="keep" class="settings-avatar-radio" checked />
+              <span class="settings-avatar-frame">
+                <span class="settings-avatar-preview">
+                  <% if (profile && profile.profileImageUrl) { %>
+                  <img src="<%= profile.profileImageUrl %>" alt="" class="settings-avatar-preview-img" />
+                  <% } else { %>
+                  <span class="settings-avatar-initials" aria-hidden="true"><%= letter %></span>
+                  <% } %>
+                </span>
+                <span class="settings-avatar-caption">Current</span>
+              </span>
+            </label>
+
+            <div class="settings-avatar-tile settings-avatar-tile--upload">
+              <input
+                type="radio"
+                name="avatarChoice"
+                value="new"
+                id="settingsAvatarChoiceNew"
+                class="settings-avatar-radio"
+              />
+              <div
+                class="settings-avatar-frame settings-avatar-frame--dash"
+                id="settingsAvatarUploadTrigger"
+                role="button"
+                tabindex="0"
+                aria-label="Upload a new profile photo"
+              >
+                <span class="settings-avatar-preview" id="settingsAvatarNewPreview">
+                  <span class="settings-avatar-placeholder">
+                    <i class="bi bi-image" aria-hidden="true"></i>
+                    <span>Tap to choose</span>
+                  </span>
+                </span>
+                <span class="settings-avatar-caption">New photo</span>
+              </div>
+              <input
+                type="file"
+                id="settingsAvatarFile"
+                name="profileImage"
+                accept="image/png,image/jpeg,image/webp"
+                class="visually-hidden"
+                tabindex="-1"
+              />
+            </div>
+
+            <label class="settings-avatar-tile">
+              <input type="radio" name="avatarChoice" value="remove" class="settings-avatar-radio" />
+              <span class="settings-avatar-frame">
+                <span class="settings-avatar-preview settings-avatar-preview--muted">
+                  <span class="settings-avatar-initials settings-avatar-initials--muted" aria-hidden="true"><%= letter %></span>
+                </span>
+                <span class="settings-avatar-caption">No photo</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-[var(--border)]">
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    const form = document.getElementById('settingsForm');
+    const fileInput = document.getElementById('settingsAvatarFile');
+    const newRadio = document.getElementById('settingsAvatarChoiceNew');
+    const trigger = document.getElementById('settingsAvatarUploadTrigger');
+    const preview = document.getElementById('settingsAvatarNewPreview');
+    if (!form || !fileInput || !newRadio || !trigger || !preview) return;
+
+    function frameForRadio(radio) {
+      if (!radio) return null;
+      const tile = radio.closest('.settings-avatar-tile');
+      return tile ? tile.querySelector('.settings-avatar-frame') : null;
+    }
+
+    function syncSelectionStyles() {
+      form.querySelectorAll('.settings-avatar-frame').forEach(function (el) {
+        el.classList.remove('settings-avatar-frame--selected');
+      });
+      const checked = form.querySelector('input[name="avatarChoice"]:checked');
+      const frame = frameForRadio(checked);
+      if (frame) frame.classList.add('settings-avatar-frame--selected');
+    }
+
+    let objectUrl = '';
+    function clearPreview() {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = '';
+      }
+      preview.innerHTML =
+        '<span class="settings-avatar-placeholder"><i class="bi bi-image" aria-hidden="true"></i><span>Tap to choose</span></span>';
+    }
+
+    function openFilePicker() {
+      newRadio.checked = true;
+      syncSelectionStyles();
+      fileInput.click();
+    }
+
+    trigger.addEventListener('click', function (e) {
+      if (e.target === fileInput) return;
+      openFilePicker();
+    });
+    trigger.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openFilePicker();
+      }
+    });
+
+    fileInput.addEventListener('change', function () {
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) {
+        clearPreview();
+        return;
+      }
+      newRadio.checked = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      objectUrl = URL.createObjectURL(f);
+      preview.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = objectUrl;
+      img.alt = '';
+      img.className = 'settings-avatar-preview-img';
+      preview.appendChild(img);
+      syncSelectionStyles();
+    });
+
+    form.querySelectorAll('input[name="avatarChoice"]').forEach(function (r) {
+      r.addEventListener('change', syncSelectionStyles);
+    });
+    syncSelectionStyles();
+  })();
+</script>

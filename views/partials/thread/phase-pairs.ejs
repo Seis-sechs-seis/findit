@@ -1,0 +1,6 @@
+<% (pairs || []).forEach((pair) => { %>
+<%- include('phase-divider', { phase: 'closed', at: pair.closedAt, formatThreadTime, contact, item }) %>
+<% if (pair.reopenedAt) { %>
+<%- include('phase-divider', { phase: 'reopened', at: pair.reopenedAt, formatThreadTime, contact, item }) %>
+<% } %>
+<% }) %>

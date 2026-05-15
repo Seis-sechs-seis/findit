@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> | <%= appName %></title>
+    <meta
+      name="description"
+      content="<%= typeof metaDescription !== 'undefined' ? metaDescription : 'FindIt – Report, search, and recover lost belongings in your community.' %>"
+    />
+
+    <!-- Favicon & app icons (transparent purple mark) -->
+    <link rel="icon" type="image/png" href="/images/ic_transparent.png" />
+    <link rel="apple-touch-icon" href="/images/ic_transparent.png" />
+
+    <!-- Open Graph / social preview -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="<%= title %> | <%= appName %>" />
+    <meta
+      property="og:description"
+      content="<%= typeof metaDescription !== 'undefined' ? metaDescription : 'FindIt – Report, search, and recover lost belongings in your community.' %>"
+    />
+    <meta property="og:url" content="<%= siteUrl %><%= currentPath %>" />
+    <meta property="og:image" content="<%= siteUrl %>/images/ic_transparent.png" />
+    <meta property="og:site_name" content="<%= appName %>" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="<%= title %> | <%= appName %>" />
+    <meta
+      name="twitter:description"
+      content="<%= typeof metaDescription !== 'undefined' ? metaDescription : 'FindIt – Report, search, and recover lost belongings in your community.' %>"
+    />
+    <meta name="twitter:image" content="<%= siteUrl %>/images/ic_transparent.png" />
+
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+    <link rel="dns-prefetch" href="https://fonts.bunny.net" />
+    <link rel="preload" href="/css/global.css" as="style" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
+    <script>
+      (() => {
+        try {
+          const saved = localStorage.getItem("findit-theme");
+          const theme = saved === "dark" ? "dark" : "light";
+          document.documentElement.setAttribute("data-bs-theme", theme);
+          document.documentElement.classList.toggle("dark", theme === "dark");
+        } catch (_e) {}
+        document.documentElement.classList.add("js");
+      })();
+    </script>
+    <link href="/css/global.css" rel="stylesheet" />
+    <script src="/js/fi-feedback.js" defer></script>
+  </head>
+  <%
+  const isAuthPage = ['/login', '/register', '/forgot-password', '/verify-email'].includes(currentPath)
+    || currentPath.startsWith('/reset-password');
+  const isItemFocusPage = /^\/items\/[^/]+$/.test(currentPath);
+  const isReportPage = currentPath === '/report' || currentPath.startsWith('/items/report');
+  const isContactThreadPage = /^\/items\/[^/]+\/contact\/[^/]+$/.test(currentPath);
+  let focusNavBackHref = '/items';
+  if (isReportPage) focusNavBackHref = user ? '/dashboard' : '/';
+  else if (isContactThreadPage) focusNavBackHref = '/requests';
+  else if (isItemFocusPage) focusNavBackHref = '/items';
+  const _rqUnr = typeof requestsUnreadCount !== 'undefined' ? Math.max(0, Number(requestsUnreadCount) || 0) : 0;
+%>
+  <body class="shell">
+    <% if (typeof csrfToken !== 'undefined' && csrfToken) { %>
+    <meta name="csrf-token" content="<%= csrfToken %>" />
+    <script>
+      (() => {
+        const run = () => {
+          const t = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+          if (!t) return;
+          window.__FINDIT_CSRF__ = t;
+          document.querySelectorAll('form[method="post" i], form[method="POST"]').forEach((f) => {
+            if (f.querySelector('input[name="_csrf"]')) return;
+            const i = document.createElement('input');
+            i.type = 'hidden';
+            i.name = '_csrf';
+            i.value = t;
+            f.prepend(i);
+          });
+        };
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', run, { once: true });
+        } else {
+          run();
+        }
+      })();
+    </script>
+    <% } %>
+    <% if (!isAuthPage && !isItemFocusPage && !isReportPage && !isContactThreadPage) { %> <%- include('partials/navbar') %> <% } %> <% if
+    (isItemFocusPage || isReportPage || isContactThreadPage) { %>
+    <header class="sticky top-0 z-50 bg-surface border-b-base backdrop-blur-md py-3">
+      <div class="gutter flex items-center justify-between gap-3 min-w-0">
+        <a
+          class="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-secondary hover:text-main text-decoration-none"
+          href="<%= focusNavBackHref %>"
+          <% if (isContactThreadPage) { %>aria-label="Back to requests" title="Back to requests"<% } %>
+        >
+          <i class="bi bi-arrow-left"></i>
+          <span>Back</span>
+        </a>
+        <% if (isContactThreadPage) { %>
+        <span class="min-w-0 flex-1" aria-hidden="true"></span>
+        <a
+          class="nav-icon-btn relative shrink-0 text-primary hover:opacity-90"
+          href="/requests"
+          aria-label="<%= _rqUnr > 0 ? 'Requests inbox, ' + _rqUnr + ' unread' : 'Requests inbox' %>"
+          title="Requests inbox"
+        >
+          <i class="bi bi-inbox text-base leading-none" aria-hidden="true"></i>
+          <% if (_rqUnr > 0) { %>
+          <span class="app-requests-badge app-requests-badge--icon"><%= _rqUnr > 99 ? '99+' : _rqUnr %></span>
+          <% } %>
+        </a>
+        <% } else { %>
+        <span class="flex-1" aria-hidden="true"></span>
+        <% } %>
+      </div>
+    </header>
+    <% } %>
+
+    <main class="flex-grow-1 flex min-h-0 flex-col<%= isContactThreadPage ? ' main--contact-thread' : '' %>"><%- body %></main>
+
+    <% if (!isAuthPage && !isItemFocusPage && !isReportPage && !isContactThreadPage) { %>
+    <%- include('partials/footer') %>
+    <% } %>
+
+    <% if (!isAuthPage) { %>
+    <!-- Single fixed box (card-sized only). A full-bleed fixed wrapper can steal taps on mobile WebKit even with pointer-events: none. -->
+    <div class="cookie-consent" data-cookie-consent hidden>
+      <div class="cookie-consent__icon"><i class="bi bi-cookie"></i></div>
+      <div class="cookie-consent__content">
+        <p class="cookie-consent__title">Cookies on FindIt</p>
+        <p class="cookie-consent__text">
+          We use essential cookies to keep the site secure and optional cookies to improve experience.
+        </p>
+      </div>
+      <div class="cookie-consent__actions">
+        <button type="button" class="btn btn-sm btn-secondary" data-cookie-reject>Reject</button>
+        <button type="button" class="btn btn-sm btn-primary" data-cookie-accept>Allow</button>
+      </div>
+    </div>
+
+    <style>
+      .cookie-consent {
+        position: fixed;
+        z-index: 70;
+        left: 50%;
+        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+        width: min(680px, calc(100vw - 24px));
+        box-sizing: border-box;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 12px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: color-mix(in srgb, var(--surface) 88%, transparent);
+        backdrop-filter: saturate(130%) blur(12px);
+        -webkit-backdrop-filter: saturate(130%) blur(12px);
+        box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
+        padding: 12px 14px;
+        transform: translate(-50%, 12px);
+        opacity: 0;
+        transition:
+          opacity 0.2s ease,
+          transform 0.2s ease;
+        pointer-events: none;
+      }
+      .cookie-consent.is-visible {
+        opacity: 1;
+        transform: translate(-50%, 0);
+        pointer-events: auto;
+      }
+      .cookie-consent.cookie-consent--dismissing {
+        pointer-events: none;
+      }
+      .cookie-consent__icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: var(--primary);
+        background: color-mix(in srgb, var(--primary) 12%, transparent);
+      }
+      .cookie-consent__title {
+        margin: 0;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .cookie-consent__text {
+        margin: 2px 0 0;
+        font-size: 0.75rem;
+        line-height: 1.45;
+        color: var(--text-secondary);
+      }
+      .cookie-consent__actions {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+      }
+      @media (max-width: 640px) {
+        .cookie-consent {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        .cookie-consent__actions {
+          width: 100%;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+        }
+        .cookie-consent__actions .btn {
+          width: 100%;
+        }
+      }
+    </style>
+    <% } %>
+
+    <script src="/js/prefetch-nav.js" defer></script>
+    <script src="/js/main.js" defer></script>
+    <script src="/js/pw-strength.js" defer></script>
+    <% if (!isAuthPage) { %>
+    <script>
+      (() => {
+        const KEY = "findit-cookie-consent";
+        const root = document.querySelector("[data-cookie-consent]");
+        if (!root) return;
+        const acceptBtn = root.querySelector("[data-cookie-accept]");
+        const rejectBtn = root.querySelector("[data-cookie-reject]");
+
+        const hide = () => {
+          root.classList.remove("is-visible");
+          root.classList.add("cookie-consent--dismissing");
+          setTimeout(() => {
+            root.hidden = true;
+            root.classList.remove("cookie-consent--dismissing");
+          }, 220);
+        };
+        const saveChoice = (choice) => {
+          try {
+            localStorage.setItem(KEY, JSON.stringify({ choice, at: Date.now() }));
+          } catch (_e) {}
+        };
+
+        let existing = null;
+        try {
+          existing = localStorage.getItem(KEY);
+        } catch (_e) {}
+        if (existing) return;
+
+        root.hidden = false;
+        root.classList.remove("cookie-consent--dismissing");
+        requestAnimationFrame(() => root.classList.add("is-visible"));
+
+        if (acceptBtn) {
+          acceptBtn.addEventListener("click", () => {
+            saveChoice("accepted");
+            hide();
+          });
+        }
+        if (rejectBtn) {
+          rejectBtn.addEventListener("click", () => {
+            saveChoice("rejected");
+            hide();
+          });
+        }
+      })();
+    </script>
+    <% } %>
+  </body>
+</html>

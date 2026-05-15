@@ -1,0 +1,12 @@
+<% if (typeof iso !== 'undefined' && iso) { %>
+<% const _stampD = new Date(iso); const _stampOk = !Number.isNaN(_stampD.getTime()); %>
+<% if (_stampOk) { %>
+<div class="thread-discord__msg-stamp-wrap">
+  <time class="thread-discord__msg-stamp" datetime="<%= _stampD.toISOString() %>"><%= formatThreadTime(iso) %></time>
+</div>
+<% } %>
+<% } else if (typeof label !== 'undefined' && label) { %>
+<div class="thread-discord__msg-stamp-wrap">
+  <span class="thread-discord__msg-stamp thread-discord__msg-stamp--label"><%= label %></span>
+</div>
+<% } %>

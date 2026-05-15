@@ -1,0 +1,34 @@
+<div class="home-hero-metrics" role="group" aria-label="Live platform stats">
+  <div class="home-hero-metrics__divider" aria-hidden="true"></div>
+  <div class="home-hero-metrics__grid">
+    <div class="home-hero-metric">
+      <p class="home-hero-metric__value">
+        <span class="js-home-stat-count" data-count-to="<%= stats.claimed %>" data-suffix="+">0+</span>
+      </p>
+      <p class="home-hero-metric__label">Items reunited</p>
+    </div>
+    <div class="home-hero-metric">
+      <p class="home-hero-metric__value">
+        <span
+          class="js-home-stat-count"
+          data-count-to="<%= Math.max((stats.total || 0) - (stats.claimed || 0), 0) %>"
+          data-suffix="+"
+          >0+</span
+        >
+      </p>
+      <p class="home-hero-metric__label">Active reports</p>
+    </div>
+    <div class="home-hero-metric">
+      <p class="home-hero-metric__value">
+        <span class="js-home-stat-count" data-count-to="24" data-suffix="/7">0/7</span>
+      </p>
+      <p class="home-hero-metric__label">Community help</p>
+    </div>
+    <div class="home-hero-metric">
+      <p class="home-hero-metric__value">
+        <span class="js-home-stat-count" data-count-to="100" data-suffix="%">0%</span>
+      </p>
+      <p class="home-hero-metric__label">Privacy-first</p>
+    </div>
+  </div>
+</div>

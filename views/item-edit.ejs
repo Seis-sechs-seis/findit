@@ -1,0 +1,165 @@
+<section class="py-10 sm:py-14 bg-page min-h-screen">
+  <div class="gutter max-w-2xl mx-auto">
+    <a
+      href="/dashboard"
+      class="inline-flex items-center gap-1 text-sm text-secondary mb-6 text-decoration-none hover:text-main"
+    >
+      <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <h1 class="title mb-1">Edit Report</h1>
+    <p class="text-sm text-secondary mb-8">Update item details, contact info, and report status.</p>
+
+    <% if (errors.length > 0) { %>
+    <div class="alert alert-danger mb-6" role="alert">
+      <ul class="fi-notice__list text-xs">
+        <% errors.forEach(err => { %>
+        <li><%= err %></li>
+        <% }) %>
+      </ul>
+    </div>
+    <% } %>
+
+    <form method="POST" action="/items/<%= item.id %>/edit" novalidate class="space-y-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="field">
+          <label class="field-label">Report Type</label>
+          <select class="field-input" name="type" required>
+            <% if (formData.type === 'lost') { %>
+            <option value="lost" selected>Lost</option>
+            <% } else { %>
+            <option value="lost">Lost</option>
+            <% } %>
+            <% if (formData.type === 'found') { %>
+            <option value="found" selected>Found</option>
+            <% } else { %>
+            <option value="found">Found</option>
+            <% } %>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Status</label>
+          <select class="field-input" name="status" required>
+            <% if (formData.status === 'active') { %>
+            <option value="active" selected>Active</option>
+            <% } else { %>
+            <option value="active">Active</option>
+            <% } %>
+            <% if (formData.status === 'claimed') { %>
+            <option value="claimed" selected>Claimed</option>
+            <% } else { %>
+            <option value="claimed">Claimed</option>
+            <% } %>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="title" class="field-label">Item Title</label>
+        <input type="text" class="field-input" id="title" name="title" value="<%= formData.title || '' %>" required />
+      </div>
+
+      <div class="field">
+        <label for="description" class="field-label">Description</label>
+        <textarea class="field-input" id="description" name="description" rows="4" required>
+<%= formData.description || '' %></textarea
+        >
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="field">
+          <label for="category" class="field-label">Category</label>
+          <select class="field-input" id="category" name="category" required>
+            <% categories.forEach(cat => { %>
+            <% if (formData.category === cat) { %>
+            <option value="<%= cat %>" selected><%= cat %></option>
+            <% } else { %>
+            <option value="<%= cat %>"><%= cat %></option>
+            <% } %>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field">
+          <label for="date" class="field-label">Date Lost/Found</label>
+          <input type="date" class="field-input" id="date" name="date" value="<%= formData.date || '' %>" required />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="location" class="field-label">Location</label>
+        <input
+          type="text"
+          class="field-input"
+          id="location"
+          name="location"
+          value="<%= formData.location || '' %>"
+          required
+        />
+      </div>
+
+      <div class="border-t-base pt-5">
+        <h3 class="text-sm font-bold text-main mb-3">Contact Information</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="field">
+            <label for="contactName" class="field-label">Contact Name</label>
+            <input
+              type="text"
+              class="field-input"
+              id="contactName"
+              name="contactName"
+              value="<%= formData.contactName || '' %>"
+              required
+            />
+          </div>
+          <div class="field">
+            <label for="contactEmail" class="field-label">Contact Email</label>
+            <input
+              type="email"
+              class="field-input"
+              id="contactEmail"
+              name="contactEmail"
+              value="<%= formData.contactEmail || '' %>"
+              required
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-xl p-4" style="background: var(--surface-2); border: 1px solid var(--border)">
+        <div class="text-sm font-semibold text-main mb-3">
+          <i class="bi bi-shield-check me-1 text-primary"></i> Verification
+        </div>
+        <div class="space-y-3">
+          <div class="field">
+            <label for="verificationPrompt" class="field-label text-xs">Verification question</label>
+            <input
+              type="text"
+              class="field-input"
+              id="verificationPrompt"
+              name="verificationPrompt"
+              value="<%= formData.verificationPrompt || '' %>"
+              maxlength="255"
+            />
+          </div>
+          <div class="field">
+            <label for="verificationAnswer" class="field-label text-xs">Expected answer</label>
+            <input
+              type="text"
+              class="field-input"
+              id="verificationAnswer"
+              name="verificationAnswer"
+              value="<%= formData.verificationAnswer || '' %>"
+              maxlength="200"
+              placeholder="Required when question is set"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check2-circle me-1"></i>Save changes</button>
+        <a href="/dashboard" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</section>

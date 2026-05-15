@@ -1,0 +1,320 @@
+<%
+const formatThreadTime = (iso) => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+};
+const threadStatusTone = (s) => {
+  if (s === 'approved') return 'approved';
+  if (s === 'pending') return 'pending';
+  if (s === 'closed') return 'closed';
+  if (s === 'rejected' || s === 'cancelled') return 'halted';
+  return 'muted';
+};
+const avatarLetter = (name) => {
+  const c = String(name || '').trim().charAt(0);
+  return c ? c.toUpperCase() : '?';
+};
+const uidStr = String(user.id);
+const pTimeline =
+  typeof phaseTimelineByAfter === 'object' && phaseTimelineByAfter != null ? phaseTimelineByAfter : {};
+const tlPersisted = Array.isArray(threadTimelineEvents)
+  ? threadTimelineEvents
+  : Array.isArray(contact.threadTimelineEvents)
+    ? contact.threadTimelineEvents
+    : [];
+const hasPersistedClose = tlPersisted.some((e) => e && e.kind === 'closed');
+const viewerIsRequester = uidStr === String(contact.requesterUserId);
+const viewerIsOwnerUid = uidStr === String(contact.ownerUserId);
+const requesterName = participants[String(contact.requesterUserId)] || 'Member';
+%>
+<% if (initialMessage) { %>
+<div class="thread-chat-divider-wrap thread-chat-divider-wrap--context" role="presentation">
+  <div class="thread-chat-divider thread-chat-divider--context">
+    <hr class="thread-chat-divider__line" aria-hidden="true" />
+    <span class="thread-chat-divider__label thread-chat-divider__label--context">
+      <span>Initial request</span>
+    </span>
+    <hr class="thread-chat-divider__line" aria-hidden="true" />
+  </div>
+</div>
+<div
+  class="thread-discord__msg thread-discord__msg--embed <%= viewerIsRequester ? 'thread-discord__msg--mine' : '' %>"
+  role="listitem"
+>
+  <% if (viewerIsRequester) { %>
+  <div class="thread-discord__stack">
+    <div class="thread-discord__msg-meta">
+      <strong class="thread-discord__msg-author"><%= requesterName %></strong>
+    </div>
+    <div class="thread-discord__bubble thread-discord__bubble--mine thread-discord__bubble--embed">
+      <div class="thread-discord__bubble-rich">
+        <%- include('msg-rich-inline', { body: initialMessage, formatThreadBody }) %>
+      </div>
+    </div>
+    <%- include('msg-stamp', { formatThreadTime, iso: contact.createdAt }) %>
+  </div>
+  <div class="thread-discord__avatar thread-discord__avatar--mine" aria-hidden="true"><%= avatarLetter(requesterName) %></div>
+  <% } else { %>
+  <div class="thread-discord__avatar" aria-hidden="true"><%= avatarLetter(requesterName) %></div>
+  <div class="thread-discord__stack">
+    <div class="thread-discord__msg-meta">
+      <strong class="thread-discord__msg-author"><%= requesterName %></strong>
+    </div>
+    <div class="thread-discord__bubble thread-discord__bubble--them thread-discord__bubble--embed">
+      <div class="thread-discord__bubble-rich">
+        <%- include('msg-rich-inline', { body: initialMessage, formatThreadBody }) %>
+      </div>
+    </div>
+    <%- include('msg-stamp', { formatThreadTime, iso: contact.createdAt }) %>
+  </div>
+  <% } %>
+</div>
+<% } %>
+<% if (initialVerification) { %>
+<div class="thread-chat-divider-wrap thread-chat-divider-wrap--context" role="presentation">
+  <div class="thread-chat-divider thread-chat-divider--context">
+    <hr class="thread-chat-divider__line" aria-hidden="true" />
+    <span class="thread-chat-divider__label thread-chat-divider__label--context">
+      <span>Verification</span>
+    </span>
+    <hr class="thread-chat-divider__line" aria-hidden="true" />
+  </div>
+</div>
+<div
+  class="thread-discord__msg thread-discord__msg--embed <%= viewerIsRequester ? 'thread-discord__msg--mine' : '' %>"
+  role="listitem"
+>
+  <% if (viewerIsRequester) { %>
+  <div class="thread-discord__stack">
+    <div class="thread-discord__msg-meta">
+      <strong class="thread-discord__msg-author"><%= requesterName %></strong>
+    </div>
+    <div class="thread-discord__bubble thread-discord__bubble--mine thread-discord__bubble--embed">
+      <div class="thread-discord__bubble-rich">
+        <%- include('msg-rich-inline', { body: initialVerification, formatThreadBody }) %>
+      </div>
+    </div>
+    <%- include('msg-stamp', { formatThreadTime, label: 'Verification' }) %>
+  </div>
+  <div class="thread-discord__avatar thread-discord__avatar--mine" aria-hidden="true"><%= avatarLetter(requesterName) %></div>
+  <% } else { %>
+  <div class="thread-discord__avatar" aria-hidden="true"><%= avatarLetter(requesterName) %></div>
+  <div class="thread-discord__stack">
+    <div class="thread-discord__msg-meta">
+      <strong class="thread-discord__msg-author"><%= requesterName %></strong>
+    </div>
+    <div class="thread-discord__bubble thread-discord__bubble--them thread-discord__bubble--embed">
+      <div class="thread-discord__bubble-rich">
+        <%- include('msg-rich-inline', { body: initialVerification, formatThreadBody }) %>
+      </div>
+    </div>
+    <%- include('msg-stamp', { formatThreadTime, label: 'Verification' }) %>
+  </div>
+  <% } %>
+</div>
+<% } %>
+
+<% const dividerHalted = contact.status === 'rejected' || contact.status === 'cancelled'; %>
+<% const dividerApprovedPhase = contact.status === 'approved' || contact.status === 'closed'; %>
+
+<% if (contact.status === 'pending' || dividerHalted) { %>
+<div class="thread-chat-divider-wrap thread-chat-divider-wrap--instream" data-thread-status-strip>
+  <div class="thread-chat-divider thread-chat-divider--<%= threadStatusTone(contact.status) %>" role="status">
+    <hr class="thread-chat-divider__line" aria-hidden="true" />
+    <span class="thread-chat-divider__label">
+      <span class="thread-chat-divider__status"><%= contact.status %></span>
+      <span class="thread-chat-divider__ref">#<%= contact.id %></span>
+      <% if (item.status === 'claimed') { %>
+      <span class="thread-chat-divider__sep" aria-hidden="true">·</span>
+      <span class="thread-chat-divider__extra">claimed</span>
+      <% } %>
+    </span>
+    <hr class="thread-chat-divider__line" aria-hidden="true" />
+  </div>
+  <% if (contact.status === 'pending') { %>
+  <p class="thread-chat-divider__hint mb-0">
+    <% if (isOwner) { %>
+    <strong>Your move</strong> — use <span class="thread-chat-divider__approve-ref">Approve</span> or Reject below. Chat opens after approval.
+    <% } else { %>
+    <strong>Awaiting owner</strong> — they must approve before chat opens.
+    <% } %>
+  </p>
+  <% } else if (dividerHalted) { %>
+  <p class="thread-chat-divider__hint mb-0">No further messages for this request.</p>
+  <% } %>
+</div>
+<% } %>
+
+<% if (dividerApprovedPhase) { %>
+<div
+  class="thread-chat-divider-wrap thread-chat-divider-wrap--instream"
+  data-thread-status-strip
+  data-thread-approved-strip
+>
+  <div class="thread-chat-divider thread-chat-divider--approved" role="status">
+    <hr class="thread-chat-divider__line" aria-hidden="true" />
+    <span class="thread-chat-divider__label">
+      <span class="thread-chat-divider__status">approved</span>
+      <span class="thread-chat-divider__ref">#<%= contact.id %></span>
+      <% if (item.status === 'claimed') { %>
+      <span class="thread-chat-divider__sep" aria-hidden="true">·</span>
+      <span class="thread-chat-divider__extra">claimed</span>
+      <% } %>
+    </span>
+    <hr class="thread-chat-divider__line" aria-hidden="true" />
+  </div>
+  <% if (contact.status === 'approved') { %>
+  <p class="thread-chat-divider__hint mb-0">Chat is open — messages below.</p>
+  <% } else { %>
+  <p class="thread-chat-divider__hint mb-0 text-secondary">
+    Chat was approved here; messages continued below until the thread was ended.
+  </p>
+  <% } %>
+</div>
+<% } %>
+
+<% if (contact.ownerDecisionNote && contact.status !== 'pending') { %>
+<% const ownerName = participants[String(contact.ownerUserId)] || 'Reporter'; %>
+<div
+  class="thread-discord__msg thread-discord__msg--embed <%= viewerIsOwnerUid ? 'thread-discord__msg--mine' : '' %>"
+  role="listitem"
+>
+  <% if (viewerIsOwnerUid) { %>
+  <div class="thread-discord__stack">
+    <div class="thread-discord__msg-meta">
+      <strong class="thread-discord__msg-author"><%= ownerName %></strong>
+    </div>
+    <div class="thread-discord__bubble thread-discord__bubble--owner">
+      <div class="thread-discord__bubble-rich">
+        <%- include('msg-rich-inline', { body: contact.ownerDecisionNote, formatThreadBody }) %>
+      </div>
+    </div>
+    <%- include('msg-stamp', { formatThreadTime, label: 'Owner note' }) %>
+  </div>
+  <div class="thread-discord__avatar thread-discord__avatar--mine" aria-hidden="true"><%= avatarLetter(ownerName) %></div>
+  <% } else { %>
+  <div class="thread-discord__avatar thread-discord__avatar--embed thread-discord__avatar--owner" aria-hidden="true">
+    <%= avatarLetter(ownerName) %>
+  </div>
+  <div class="thread-discord__stack">
+    <div class="thread-discord__msg-meta">
+      <strong class="thread-discord__msg-author"><%= ownerName %></strong>
+    </div>
+    <div class="thread-discord__bubble thread-discord__bubble--owner">
+      <div class="thread-discord__bubble-rich">
+        <%- include('msg-rich-inline', { body: contact.ownerDecisionNote, formatThreadBody }) %>
+      </div>
+    </div>
+    <%- include('msg-stamp', { formatThreadTime, label: 'Owner note' }) %>
+  </div>
+  <% } %>
+</div>
+<% } %>
+
+<%- include('phase-pairs', {
+  pairs: pTimeline['0'] || [],
+  formatThreadTime,
+  contact,
+  item,
+}) %>
+
+<% let prevAuthorUserId = null; %>
+<% messages.forEach((m) => { %>
+<% const mine = uidStr === String(m.authorUserId); %>
+<% const pname = participants[String(m.authorUserId)] || 'Member'; %>
+<% const cluster =
+  prevAuthorUserId !== null && String(prevAuthorUserId) === String(m.authorUserId); %>
+<% prevAuthorUserId = m.authorUserId; %>
+<div
+  class="thread-discord__msg <%= mine ? 'thread-discord__msg--mine' : '' %> <%= cluster ? 'thread-discord__msg--cluster' : '' %>"
+  data-msg-id="<%= m.id %>"
+  data-author-user-id="<%= m.authorUserId %>"
+  role="listitem"
+>
+  <% if (mine) { %>
+  <div class="thread-discord__stack">
+    <% if (!cluster) { %>
+    <div class="thread-discord__msg-meta">
+      <strong class="thread-discord__msg-author"><%= pname %></strong>
+    </div>
+    <% } %>
+    <div class="thread-discord__bubble thread-discord__bubble--mine">
+      <div class="thread-discord__bubble-rich">
+        <%- include('msg-rich-inline', { body: m.body, formatThreadBody }) %>
+      </div>
+      <%- include('msg-attachment', {
+        attachmentUrl: m.attachmentUrl,
+        mine: true,
+        afterText: !!(m.body && String(m.body).trim()),
+        threadAttachmentKind,
+      }) %>
+    </div>
+    <%- include('msg-stamp', { formatThreadTime, iso: m.createdAt }) %>
+  </div>
+  <div
+    class="thread-discord__avatar thread-discord__avatar--mine <%= cluster ? 'thread-discord__avatar--cluster' : '' %>"
+    aria-hidden="true"
+  >
+    <%= avatarLetter(pname) %>
+  </div>
+  <% } else { %>
+  <div class="thread-discord__avatar <%= cluster ? 'thread-discord__avatar--cluster' : '' %>" aria-hidden="true">
+    <%= avatarLetter(pname) %>
+  </div>
+  <div class="thread-discord__stack">
+    <% if (!cluster) { %>
+    <div class="thread-discord__msg-meta">
+      <strong class="thread-discord__msg-author"><%= pname %></strong>
+    </div>
+    <% } %>
+    <div class="thread-discord__bubble thread-discord__bubble--them">
+      <div class="thread-discord__bubble-rich">
+        <%- include('msg-rich-inline', { body: m.body, formatThreadBody }) %>
+      </div>
+      <%- include('msg-attachment', {
+        attachmentUrl: m.attachmentUrl,
+        mine: false,
+        afterText: !!(m.body && String(m.body).trim()),
+        threadAttachmentKind,
+      }) %>
+    </div>
+    <%- include('msg-stamp', { formatThreadTime, iso: m.createdAt }) %>
+  </div>
+  <% } %>
+</div>
+<%- include('phase-pairs', {
+  pairs: pTimeline[String(m.id)] || [],
+  formatThreadTime,
+  contact,
+  item,
+}) %>
+<% }) %>
+<% if (!hasPersistedClose && contact.status === 'closed') { %>
+<div
+  class="thread-chat-divider-wrap thread-chat-divider-wrap--instream thread-chat-divider-wrap--thread-closed"
+  data-thread-status-strip
+  data-thread-closed-strip
+>
+  <div class="thread-chat-divider thread-chat-divider--closed" role="status">
+    <hr class="thread-chat-divider__line" aria-hidden="true" />
+    <span class="thread-chat-divider__label">
+      <span class="thread-chat-divider__status">closed</span>
+      <span class="thread-chat-divider__ref">#<%= contact.id %></span>
+      <% if (item.status === 'claimed') { %>
+      <span class="thread-chat-divider__sep" aria-hidden="true">·</span>
+      <span class="thread-chat-divider__extra">claimed</span>
+      <% } %>
+    </span>
+    <hr class="thread-chat-divider__line" aria-hidden="true" />
+  </div>
+  <p class="thread-chat-divider__hint mb-0">
+    Thread ended here — history stays above. Use <strong>Reopen chat</strong> below to message again.
+  </p>
+</div>
+<% } %>
+<% if (hasPersistedClose && contact.status === 'closed') { %>
+<p class="thread-chat-divider__hint thread-chat-divider__hint--tail mb-0 px-1 text-center">
+  Thread is closed — history above. Use <strong>Reopen chat</strong> below to message again.
+</p>
+<% } %>

@@ -1,0 +1,68 @@
+<% if (items.length === 0) { %>
+<div class="text-center py-20 browse-empty-state">
+  <i class="bi bi-inbox text-5xl text-muted-custom"></i>
+  <h3 class="text-lg font-bold mt-4 text-main">No items found</h3>
+  <p class="text-secondary mt-2 mb-6">Try adjusting your search or filters.</p>
+  <a href="/items" class="btn btn-secondary"><i class="bi bi-arrow-counterclockwise me-1"></i>Clear filters</a>
+</div>
+<% } else { %>
+<% const _browseQ = typeof browseSearchQuery === 'string' ? browseSearchQuery : ''; %>
+<% const _hl =
+  typeof highlightBrowseMatches === 'function'
+    ? highlightBrowseMatches
+    : (txt) => (typeof escapeHtml === 'function' ? escapeHtml(String(txt ?? '')) : String(txt ?? '')); %>
+<div id="browse-items-root" class="browse-items-root browse-items-root--grid" data-layout="grid">
+  <div class="browse-items-inner">
+    <% items.forEach((item, itemIdx) => { %>
+    <% const browsePreview = item.description.length > 52 ?
+    item.description.substring(0, 52).trimEnd() + '…' : item.description; %>
+    <% const browseHintRaw = (item.description + ' · ' + item.location + ' · ' + item.date).replace(/\s+/g, ' ').trim(); %>
+    <% const browseHintShort = browseHintRaw.length > 480 ? browseHintRaw.substring(0, 480) + '…' : browseHintRaw;
+    %>
+    <% const browseHintEsc = typeof escapeHtml === 'function' ? escapeHtml(browseHintShort) : String(browseHintShort).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); %>
+    <article class="item-card card-surface group">
+      <span class="item-card__ink" aria-hidden="true"></span>
+      <div class="item-card__media<%= item.isSampleSeed ? ' item-card__media--sample' : '' %>">
+        <% if (item.isSampleSeed) { %>
+        <span class="item-card__sample-badge" aria-label="Sample demo listing">Sample</span>
+        <% } %>
+        <%- include('item-image-display', {
+          item,
+          wrapperClass: 'absolute inset-0',
+          imgClass: 'absolute inset-0 h-full w-full object-cover',
+          altText: item.title,
+          loading: itemIdx === 0 ? 'eager' : 'lazy',
+          fetchpriority: itemIdx === 0 ? 'high' : ''
+        }) %>
+      </div>
+      <div class="item-card__head">
+        <span class="status-pill <%= item.type === 'lost' ? 'status-pill--lost' : 'status-pill--found' %>">
+          <i class="bi <%= item.type === 'lost' ? 'bi-exclamation-circle' : 'bi-check-circle' %> me-1"></i>
+          <%= item.type.charAt(0).toUpperCase() + item.type.slice(1) %>
+        </span>
+        <% if (item.status === 'claimed') { %>
+        <span class="status-pill status-pill--claimed"><i class="bi bi-patch-check me-1"></i>Claimed</span>
+        <% } else { %>
+        <span class="item-card__category"><%- _hl(item.category, _browseQ) %></span>
+        <% } %>
+      </div>
+      <h4 class="item-card__title"><%- _hl(item.title, _browseQ) %></h4>
+      <p class="item-card__desc browse-card-desc-preview" title="<%= browseHintEsc %>"><%- _hl(browsePreview, _browseQ) %></p>
+      <div class="item-card__meta-row">
+        <div class="item-card__meta">
+          <span><i class="bi bi-geo-alt me-1"></i><%- _hl(item.location, _browseQ) %></span>
+          <span><i class="bi bi-calendar-event me-1"></i><%- _hl(item.date, _browseQ) %></span>
+        </div>
+        <a
+          href="/items/<%= item.id %>"
+          class="item-card__view btn btn-secondary btn-sm w-full justify-center"
+          aria-label="View this report"
+        >
+          <span class="item-card__view-label">View</span><i class="bi bi-arrow-right item-card__view-arrow" aria-hidden="true"></i>
+        </a>
+      </div>
+    </article>
+    <% }) %>
+  </div>
+</div>
+<% } %>

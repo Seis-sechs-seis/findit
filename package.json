@@ -1,0 +1,67 @@
+{
+  "name": "findit",
+  "version": "1.0.0",
+  "description": "FindIt — Express/EJS lost-and-found app (sessions, MySQL or Supabase).",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Seis-sechs-seis/FindIT.git"
+  },
+  "homepage": "https://github.com/Seis-sechs-seis/FindIT#readme",
+  "bugs": {
+    "url": "https://github.com/Seis-sechs-seis/FindIT/issues"
+  },
+  "scripts": {
+    "build:css": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 tailwindcss --content \"./views/**/*.ejs,./public/js/**/*.js\" -i ./src/styles/global.css -o ./public/css/global.css --minify",
+    "watch:css": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 tailwindcss -i ./src/styles/global.css -o ./public/css/global.css --watch",
+    "start": "npm run build:css && node server.js",
+    "dev": "npm run build:css && nodemon server.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "simulate:flow": "node scripts/simulate-user-flow.js",
+    "make:admin": "node scripts/make-admin.js",
+    "format": "prettier --plugin=prettier-plugin-ejs --write \"src/**/*.js\" \"tests/**/*.js\" \"public/js/**/*.js\" \"server.js\" \"run-tests.js\" \"run-db-tests.js\" \"eslint.config.cjs\" \"postcss.config.js\" \"tailwind.config.js\" \"prettier.config.cjs\" \"views/**/*.ejs\"",
+    "format:check": "prettier --plugin=prettier-plugin-ejs --check \"src/**/*.js\" \"tests/**/*.js\" \"public/js/**/*.js\" \"server.js\" \"run-tests.js\" \"run-db-tests.js\" \"eslint.config.cjs\" \"postcss.config.js\" \"tailwind.config.js\" \"prettier.config.cjs\" \"views/**/*.ejs\""
+  },
+  "keywords": [
+    "findit",
+    "lost-and-found",
+    "express",
+    "ejs"
+  ],
+  "author": {
+    "name": "Seis-sechs-seis",
+    "url": "https://github.com/Seis-sechs-seis"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.105.3",
+    "bcryptjs": "^3.0.3",
+    "compression": "^1.8.1",
+    "dotenv": "^17.4.2",
+    "ejs": "^5.0.1",
+    "express": "^5.2.1",
+    "express-ejs-layouts": "^2.5.1",
+    "express-rate-limit": "^8.5.1",
+    "express-session": "^1.19.0",
+    "helmet": "^8.1.0",
+    "multer": "^2.1.1",
+    "mysql2": "^3.22.3",
+    "nodemailer": "^8.0.7",
+    "undici": "^8.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "autoprefixer": "^10.5.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^10.3.0",
+    "eslint-plugin-unicorn": "^64.0.0",
+    "globals": "^17.6.0",
+    "nodemon": "^3.1.14",
+    "postcss": "^8.5.14",
+    "prettier": "^3.8.3",
+    "prettier-plugin-ejs": "^1.0.3",
+    "supertest": "^7.2.2",
+    "tailwindcss": "^3.4.19"
+  }
+}

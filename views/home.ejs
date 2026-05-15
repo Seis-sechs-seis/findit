@@ -1,0 +1,431 @@
+<!-- ===== HERO ===== -->
+<section class="hero-banner home-hero-accent relative shrink-0 overflow-hidden max-lg:flex max-lg:flex-col">
+  <!-- Animated background image -->
+  <div class="hero-bg-ken" aria-hidden="true">
+    <div class="hero-bg-ken__track">
+      <img class="hero-bg-ken__img" src="/images/hero-bg.jpg" alt="" decoding="async" fetchpriority="high" />
+      <img class="hero-bg-ken__img" src="/images/hero-bg.jpg" alt="" decoding="async" fetchpriority="low" />
+    </div>
+  </div>
+  <div class="hero-tint" aria-hidden="true"></div>
+  <span class="hero-orb hero-orb--tl" aria-hidden="true"></span>
+  <span class="hero-orb hero-orb--br" aria-hidden="true"></span>
+
+  <div
+    class="gutter relative z-10 max-lg:flex max-lg:min-h-0 max-lg:flex-1 max-lg:flex-col max-lg:justify-end max-lg:pt-6 max-lg:pb-[max(2.5rem,env(safe-area-inset-bottom,0px))] py-14 sm:py-16 lg:py-16"
+  >
+    <div
+      class="grid grid-cols-1 max-lg:justify-items-start lg:grid-cols-2 gap-8 max-lg:gap-8 lg:gap-12 lg:items-center"
+    >
+      <!-- Left: Copy (bottom-aligned on mobile within hero) -->
+      <div class="max-w-lg w-full max-lg:text-left">
+        <div
+          class="inline-flex items-center gap-2 mb-4 rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-widest border"
+          style="
+            color: rgba(255, 255, 255, 0.88);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.14);
+          "
+        >
+          <i class="bi bi-stars"></i> trusted campus network
+        </div>
+        <h1 class="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-extrabold leading-tight mb-5" style="color: #fff">
+          Find what<br />matters.<br />Reunite what's<br /><span style="color: var(--primary-light)">lost.</span>
+        </h1>
+        <p class="text-base sm:text-lg mb-6 leading-relaxed" style="color: rgba(255, 255, 255, 0.65)">
+          A simple way to report lost or found items in your community and help them get back where they belong.
+        </p>
+        <div class="flex flex-wrap gap-3 pb-2 lg:pb-4">
+          <a href="/report" class="btn btn-primary btn-lg"> <i class="bi bi-plus-circle me-1"></i> Report </a>
+          <a
+            href="/items"
+            class="btn btn-lg"
+            style="
+              background: rgba(255, 255, 255, 0.12);
+              color: #fff;
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              backdrop-filter: blur(4px);
+            "
+          >
+            <i class="bi bi-search me-1"></i> Browse
+          </a>
+        </div>
+      </div>
+
+      <!-- Right: Floating preview cards (desktop, 2 cards) -->
+      <div class="home-float-card-rail hidden lg:flex items-center justify-center gap-6">
+        <div class="home-float-card home-float-card--tilt-l">
+          <div class="home-float-card__icon">
+            <img src="/images/hero-backpack.png" alt="Black backpack" loading="lazy" />
+          </div>
+          <h3>Black Backpack</h3>
+          <p>Library East Wing</p>
+          <span class="status-pill status-pill--found"><i class="bi bi-check-circle me-1"></i>Found</span>
+        </div>
+        <div class="home-float-card home-float-card--tilt-r">
+          <div class="home-float-card__icon">
+            <img src="/images/hero-headphones.png" alt="Gray headphones" loading="lazy" />
+          </div>
+          <h3>Gray Headphones</h3>
+          <p>Science Building, Floor 2</p>
+          <span class="status-pill status-pill--lost"><i class="bi bi-exclamation-circle me-1"></i>Lost</span>
+        </div>
+      </div>
+      <% if (typeof stats !== 'undefined' && stats) { %>
+      <div
+        class="home-hero-metrics-wrap hidden lg:flex lg:flex-col col-span-1 lg:col-span-2 w-full mt-8 lg:mt-10"
+        data-landing-stats="desktop"
+      >
+        <%- include('partials/home/stats-hero-rail', { stats }) %>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<div class="home-landing-rest flex w-full min-h-0 flex-col<% if (typeof user === 'undefined' || !user) { %> lg:flex-1 lg:min-h-0<% } %>">
+  <% if (typeof stats !== 'undefined' && stats) { %>
+  <!-- ===== TRUST STATS (mobile: after hero) ===== -->
+  <section
+    class="home-landing-stats home-landing-stats--below-hero lg:hidden"
+    data-landing-stats="mobile"
+    aria-label="Platform highlights"
+  >
+    <div class="gutter home-landing-stats__inner"><%- include('partials/home/stats-grid', { stats }) %></div>
+  </section>
+  <% } %>
+
+  <!-- ===== PRODUCT FLOW ===== -->
+  <section class="landing-flow py-16 sm:py-20">
+    <div class="gutter">
+      <div class="landing-flow__head">
+        <span class="landing-section-kicker">how findit works</span>
+        <h2 class="title mb-2">A trusted recovery workflow, built for real campuses and communities</h2>
+        <p class="text-secondary text-base sm:text-lg max-w-2xl">
+          From reporting to verified claiming, every step is designed for fast recovery with privacy-first
+          communication.
+        </p>
+      </div>
+
+      <div class="landing-flow__timeline">
+        <article class="landing-step-card">
+          <span class="landing-step-card__num">01</span>
+          <div class="landing-step-card__icon"><i class="bi bi-pencil-square"></i></div>
+          <h3>Report in under a minute</h3>
+          <p>Submit a lost or found report with key details, item photo, and location context.</p>
+        </article>
+        <article class="landing-step-card">
+          <span class="landing-step-card__num">02</span>
+          <div class="landing-step-card__icon"><i class="bi bi-broadcast"></i></div>
+          <h3>Community sees it instantly</h3>
+          <p>Fresh reports appear in real-time so nearby users can identify and respond quickly.</p>
+        </article>
+        <article class="landing-step-card">
+          <span class="landing-step-card__num">03</span>
+          <div class="landing-step-card__icon"><i class="bi bi-shield-lock"></i></div>
+          <h3>Verify before release</h3>
+          <p>Claim checks and ownership cues help reduce false claims and protect both parties.</p>
+        </article>
+      </div>
+
+      <div class="landing-feature-grid">
+        <article class="landing-feature-card">
+          <div class="landing-feature-card__icon"><i class="bi bi-incognito"></i></div>
+          <h3>Private by default</h3>
+          <p>Contact sharing is controlled and only revealed when relevant to a valid recovery flow.</p>
+        </article>
+        <article class="landing-feature-card">
+          <div class="landing-feature-card__icon"><i class="bi bi-patch-check"></i></div>
+          <h3>Trust indicators</h3>
+          <p>Signals like report freshness, category, and status support safer matching decisions.</p>
+        </article>
+        <article class="landing-feature-card">
+          <div class="landing-feature-card__icon"><i class="bi bi-lightning-charge"></i></div>
+          <h3>Fast reporting UX</h3>
+          <p>Simple forms and clear status updates keep submissions quick across desktop and mobile.</p>
+        </article>
+        <article class="landing-feature-card">
+          <div class="landing-feature-card__icon"><i class="bi bi-people"></i></div>
+          <h3>Community-powered recovery</h3>
+          <p>More local eyes on each report means better chances of getting belongings back sooner.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== RECENT REPORTS (CARD GRID) ===== -->
+  <section class="py-16 sm:py-20 bg-page">
+    <div class="gutter">
+      <div class="flex items-center justify-between mb-10">
+        <div>
+          <h2 class="title mb-1">Recent Reports</h2>
+          <p class="text-secondary text-sm">Freshly submitted posts from your community.</p>
+        </div>
+        <a href="/items" class="btn btn-outline btn-sm hidden sm:inline-flex"
+          >View all <i class="bi bi-arrow-right ms-1"></i
+        ></a>
+      </div>
+
+      <% if (recentItems.length === 0) { %>
+      <div class="text-center py-16">
+        <i class="bi bi-inbox text-5xl text-muted-custom"></i>
+        <h3 class="text-lg font-bold mt-4 text-main">No reports yet</h3>
+        <p class="text-secondary mt-2 mb-6">Be the first to report a lost or found item.</p>
+        <a href="/report" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Create Report</a>
+      </div>
+      <% } else { %>
+      <div
+        class="home-recent-grid grid min-h-[12rem] grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        data-home-recent-grid
+      >
+        <% recentItems.forEach((item) => { %>
+        <a href="/items/<%= item.id %>" class="item-card recent-report-card card-surface text-decoration-none group">
+          <div class="item-card__media recent-report-card__media home-recent-media<%= item.isSampleSeed ? ' item-card__media--sample' : '' %>">
+            <% if (item.isSampleSeed) { %>
+            <span class="item-card__sample-badge" aria-label="Sample demo listing">Sample</span>
+            <% } %>
+            <%- include('partials/item-image-display', {
+              item,
+              wrapperClass: 'absolute inset-0',
+              imgClass: 'absolute inset-0 h-full w-full object-cover',
+              altText: item.title,
+              loading: 'lazy',
+              fetchpriority: ''
+            }) %>
+            <div class="recent-report-card__badges">
+              <span class="status-pill <%= item.type === 'lost' ? 'status-pill--lost' : 'status-pill--found' %>">
+                <i class="bi <%= item.type === 'lost' ? 'bi-exclamation-circle' : 'bi-check-circle' %> me-1"></i>
+                <%= item.type.charAt(0).toUpperCase() + item.type.slice(1) %>
+              </span>
+              <span class="item-card__category"><%= item.category %></span>
+            </div>
+          </div>
+          <h4 class="item-card__title"><%= item.title %></h4>
+          <p class="item-card__desc">
+            <%= item.description.length > 80 ? item.description.substring(0, 80) + '...' : item.description %>
+          </p>
+          <div class="item-card__meta">
+            <span
+              ><i class="bi bi-geo-alt me-1"></i
+              ><%= item.location %></span
+            >
+            <span
+              ><i class="bi bi-calendar-event me-1"></i
+              ><%= item.date %></span
+            >
+          </div>
+        </a>
+        <% }) %>
+      </div>
+
+      <div class="text-center mt-8 sm:hidden">
+        <a href="/items" class="btn btn-outline btn-sm">View all reports <i class="bi bi-arrow-right ms-1"></i></a>
+      </div>
+      <% } %>
+    </div>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section class="landing-faq py-16 sm:py-20">
+    <div class="gutter">
+      <div class="landing-faq__head">
+        <span class="landing-section-kicker">questions &amp; trust</span>
+        <h2 class="title mb-2">Frequently asked questions</h2>
+        <p class="text-secondary">Everything you need to know before posting, claiming, or responding to a report.</p>
+      </div>
+
+      <div class="landing-faq__list" data-faq-root>
+        <article class="landing-faq-item is-open">
+          <button class="landing-faq-item__trigger" type="button" data-faq-trigger aria-expanded="true">
+            <span>How do I report a lost item?</span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <div class="landing-faq-item__content" data-faq-content>
+            <p>
+              Go to <a href="/report" class="landing-faq-link">Report</a>, choose lost/found, add accurate details, and
+              submit. The report appears in <a href="/items" class="landing-faq-link">Recent Reports</a> immediately
+              after posting.
+            </p>
+          </div>
+        </article>
+
+        <article class="landing-faq-item">
+          <button class="landing-faq-item__trigger" type="button" data-faq-trigger aria-expanded="false">
+            <span>How does claiming and verification work?</span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <div class="landing-faq-item__content" data-faq-content>
+            <p>
+              Claiming requires matching details and a short verification flow. This helps owners and finders confirm
+              the item before handoff.
+            </p>
+          </div>
+        </article>
+
+        <article class="landing-faq-item">
+          <button class="landing-faq-item__trigger" type="button" data-faq-trigger aria-expanded="false">
+            <span>Is my contact information private?</span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <div class="landing-faq-item__content" data-faq-content>
+            <p>
+              Yes. Contact details are kept limited and only used during active recovery communication when necessary.
+            </p>
+          </div>
+        </article>
+
+        <article class="landing-faq-item">
+          <button class="landing-faq-item__trigger" type="button" data-faq-trigger aria-expanded="false">
+            <span>Can I edit or remove my report later?</span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <div class="landing-faq-item__content" data-faq-content>
+            <p>
+              Yes. You can update details, adjust status, or remove the report from your dashboard whenever the item is
+              resolved.
+            </p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <% if (!user) { %>
+  <!-- ===== REGISTER CTA (guests only, below Q&A) ===== -->
+  <section
+    class="landing-register-cta lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:justify-center"
+    aria-labelledby="landing-account-cta-heading"
+  >
+    <div class="gutter">
+      <article class="landing-register-card">
+        <div class="landing-register-card__body">
+          <div class="landing-register-card__title-stack">
+            <div class="brand-mark-wrap landing-register-card__mark" aria-hidden="true">
+              <%- include('partials/logo') %>
+            </div>
+            <h2 class="landing-register-card__title" id="landing-account-cta-heading">Register now, or log in</h2>
+          </div>
+          <p class="text-secondary text-sm sm:text-base mb-6 max-w-md mx-auto leading-relaxed">
+            Free to join. Pick the action you need below.
+          </p>
+          <div class="landing-register-card__actions">
+            <a href="/register" class="btn btn-primary btn-lg justify-center">Create account</a>
+            <a href="/login" class="btn btn-outline btn-lg justify-center">Log in</a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+  <% } %>
+</div>
+
+<script>
+  (() => {
+    const values = Array.from(document.querySelectorAll(".js-home-stat-count[data-count-to]"));
+    if (!values.length) return;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const animate = (el) => {
+      const target = Number(el.dataset.countTo || 0);
+      const suffix = el.dataset.suffix || "";
+      if (prefersReducedMotion || !Number.isFinite(target) || target <= 0) {
+        el.textContent = String(target) + suffix;
+        return;
+      }
+      const duration = 1650;
+      const start = performance.now();
+      const step = (now) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 4);
+        const current = Math.round(target * eased);
+        el.textContent = String(current) + suffix;
+        if (progress < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    let hasRun = false;
+    const run = () => {
+      if (hasRun) return;
+      hasRun = true;
+      values.forEach(animate);
+    };
+    const strips = document.querySelectorAll("[data-landing-stats]");
+    if (!strips.length || !("IntersectionObserver" in window)) {
+      run();
+      strips.forEach((s) => s.classList.add("landing-stats-inview"));
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("landing-stats-inview");
+            run();
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
+    );
+    strips.forEach((strip) => observer.observe(strip));
+  })();
+
+  (() => {
+    const root = document.querySelector("[data-faq-root]");
+    if (!root) return;
+    const items = Array.from(root.querySelectorAll(".landing-faq-item"));
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const sync = (item, open) => {
+      const trigger = item.querySelector("[data-faq-trigger]");
+      const content = item.querySelector("[data-faq-content]");
+      if (!trigger || !content) return;
+      item.classList.toggle("is-open", open);
+      trigger.setAttribute("aria-expanded", open ? "true" : "false");
+      if (prefersReducedMotion) {
+        content.style.maxHeight = open ? "none" : "0px";
+        return;
+      }
+      if (open) content.style.maxHeight = content.scrollHeight + "px";
+      else content.style.maxHeight = "0px";
+    };
+    items.forEach((item) => {
+      const trigger = item.querySelector("[data-faq-trigger]");
+      if (!trigger) return;
+      sync(item, item.classList.contains("is-open"));
+      trigger.addEventListener("click", () => {
+        const icon = trigger.querySelector("i");
+        if (icon && !prefersReducedMotion) {
+          icon.classList.remove("is-popping");
+          void icon.offsetWidth;
+          icon.classList.add("is-popping");
+        }
+        const isOpen = item.classList.contains("is-open");
+        items.forEach((other) => sync(other, false));
+        sync(item, !isOpen);
+      });
+    });
+    window.addEventListener("resize", () => {
+      items.forEach((item) => {
+        if (item.classList.contains("is-open")) {
+          const content = item.querySelector("[data-faq-content]");
+          if (content && !prefersReducedMotion) content.style.maxHeight = content.scrollHeight + "px";
+        }
+      });
+    });
+  })();
+
+  (() => {
+    const grid = document.querySelector("[data-home-recent-grid]");
+    if (!grid) return;
+    grid.querySelectorAll(".home-recent-media img").forEach((img) => {
+      const wrap = img.closest(".home-recent-media");
+      if (!wrap) return;
+      wrap.classList.add("home-recent-media--pending");
+      const done = () => wrap.classList.remove("home-recent-media--pending");
+      if (img.complete && img.naturalWidth > 0) {
+        done();
+        return;
+      }
+      img.addEventListener("load", done, { once: true });
+      img.addEventListener("error", done, { once: true });
+    });
+  })();
+</script>

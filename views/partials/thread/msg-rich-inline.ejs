@@ -1,0 +1,14 @@
+<% const fb =
+  typeof formatThreadBody === 'function'
+    ? formatThreadBody
+    : (b) => {
+        const t = String(b || '').trim();
+        if (!t) return '';
+        return `<div class="thread-msg-rich"><p class="thread-msg-rich__p">${t
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')}</p></div>`;
+      }; %>
+<% if (typeof body === 'string' && body.trim()) { %>
+<%- fb(body) %>
+<% } %>

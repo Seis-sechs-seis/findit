@@ -1,0 +1,793 @@
+<section class="py-8 sm:py-10 bg-page">
+  <div class="gutter max-w-6xl mx-auto">
+    <div class="report-layout-grid">
+      <aside class="card-surface report-side">
+        <div class="report-side__badge"><i class="bi bi-stars"></i> smart reporting</div>
+        <h1 class="text-2xl font-bold text-main mb-2">Create a report</h1>
+        <p class="text-sm text-secondary mb-4">
+          Use clear details so owners and finders can match items quickly without exposing private contact info.
+        </p>
+        <ul class="report-side__list">
+          <li><i class="bi bi-check2-circle"></i> guided details and categories</li>
+          <li><i class="bi bi-shield-check"></i> optional private verification question</li>
+          <li><i class="bi bi-envelope-lock"></i> contact request approval flow</li>
+        </ul>
+      </aside>
+
+      <div class="report-main">
+        <% if (errors.length > 0) { %>
+        <div class="alert alert-danger mb-4" role="alert">
+          <p class="fi-notice__lead text-sm font-semibold">Please fix the following:</p>
+          <ul class="fi-notice__list text-xs">
+            <% errors.forEach(err => { %>
+            <li><%= err %></li>
+            <% }) %>
+          </ul>
+        </div>
+        <% } %>
+
+        <div class="card-surface report-form-card">
+          <form
+            id="report-form"
+            method="POST"
+            action="/items/report"
+            enctype="multipart/form-data"
+            novalidate
+            class="space-y-4"
+            data-report-has-errors="<%= (typeof errors !== 'undefined' && errors && errors.length) ? 'true' : 'false' %>"
+          >
+            <div class="field">
+              <label class="field-label">Report Type</label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label class="report-type-option">
+                  <% if (type === 'lost') { %>
+                  <input type="radio" class="btn-check" name="type" value="lost" id="typeLost" checked />
+                  <% } else { %>
+                  <input type="radio" class="btn-check" name="type" value="lost" id="typeLost" />
+                  <% } %>
+                  <span><i class="bi bi-exclamation-circle"></i> I Lost Something</span>
+                </label>
+                <label class="report-type-option">
+                  <% if (type === 'found') { %>
+                  <input type="radio" class="btn-check" name="type" value="found" id="typeFound" checked />
+                  <% } else { %>
+                  <input type="radio" class="btn-check" name="type" value="found" id="typeFound" />
+                  <% } %>
+                  <span><i class="bi bi-check-circle"></i> I Found Something</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="title" class="field-label">Item Title</label>
+              <input
+                type="text"
+                class="field-input"
+                id="title"
+                name="title"
+                placeholder="e.g. Black Leather Wallet"
+                value="<%= formData.title || '' %>"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label for="description" class="field-label">Description</label>
+              <!-- prettier-ignore -->
+              <textarea
+                class="field-input"
+                id="description"
+                name="description"
+                rows="4"
+                placeholder="Describe the item in detail (color, brand, distinguishing features...)"
+                required
+              ><%= formData.description || '' %></textarea>
+            </div>
+
+            <div class="field">
+              <span class="field-label">Photos <span class="text-muted-custom font-normal">(optional)</span></span>
+              <p class="text-xs text-muted-custom mt-1 mb-2">Up to 8 images · JPG, PNG, or WEBP · max 8 MB each</p>
+              <input
+                type="file"
+                class="visually-hidden"
+                id="report-photos-input"
+                name="photos"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                tabindex="-1"
+                aria-hidden="true"
+              />
+              <div id="report-photo-errors" class="report-photo-errors" role="alert" hidden></div>
+              <div
+                id="report-photo-grid"
+                class="report-photo-grid"
+                role="group"
+                aria-label="Photos for this report"
+              ></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="field">
+                <label for="category" class="field-label">Category</label>
+                <select class="field-input" id="category" name="category" required>
+                  <% categories.forEach(cat => { %>
+                  <% if (formData.category === cat) { %>
+                  <option value="<%= cat %>" selected><%= cat %></option>
+                  <% } else { %>
+                  <option value="<%= cat %>"><%= cat %></option>
+                  <% } %>
+                  <% }) %>
+                </select>
+              </div>
+              <div class="field">
+                <label for="date" class="field-label">Date Lost/Found</label>
+                <input
+                  type="date"
+                  class="field-input"
+                  id="date"
+                  name="date"
+                  value="<%= formData.date || '' %>"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="location" class="field-label">Location</label>
+              <input
+                type="text"
+                class="field-input"
+                id="location"
+                name="location"
+                placeholder="e.g. Main Cafeteria, 2nd Floor"
+                value="<%= formData.location || '' %>"
+                required
+              />
+            </div>
+
+            <div class="helper-panel report-verify-panel">
+              <div class="text-sm font-semibold text-main mb-2">
+                <i class="bi bi-shield-check me-1 text-primary"></i> Verification setup (optional)
+              </div>
+              <div class="grid gap-3">
+                <div class="field">
+                  <label for="verificationPrompt" class="field-label">Verification question</label>
+                  <input
+                    type="text"
+                    class="field-input"
+                    id="verificationPrompt"
+                    name="verificationPrompt"
+                    placeholder="e.g. What unique sticker is on it?"
+                    value="<%= formData.verificationPrompt || '' %>"
+                    maxlength="255"
+                  />
+                  <div class="text-xs text-muted-custom mt-1">
+                    Claimants answer this privately before you approve contact.
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="verificationAnswer" class="field-label">Expected answer (private)</label>
+                  <input
+                    type="text"
+                    class="field-input"
+                    id="verificationAnswer"
+                    name="verificationAnswer"
+                    placeholder="Only visible to you"
+                    value="<%= formData.verificationAnswer || '' %>"
+                    maxlength="200"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t-base pt-4">
+              <h3 class="text-sm font-bold text-main mb-2">Contact Information</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="field">
+                  <label for="contactName" class="field-label">Your Name</label>
+                  <input
+                    type="text"
+                    class="field-input"
+                    id="contactName"
+                    name="contactName"
+                    placeholder="Full name"
+                    value="<%= formData.contactName || '' %>"
+                    required
+                  />
+                </div>
+                <div class="field">
+                  <label for="contactEmail" class="field-label">Your Email</label>
+                  <input
+                    type="email"
+                    class="field-input"
+                    id="contactEmail"
+                    name="contactEmail"
+                    placeholder="email@example.com"
+                    value="<%= formData.contactEmail || '' %>"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="report-submit-btn" class="btn btn-primary w-full btn-lg">
+              <i class="bi bi-send me-1"></i> Submit Report
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .report-layout-grid {
+    display: grid;
+    grid-template-columns: 0.88fr 1.12fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .report-side,
+  .report-form-card {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+  }
+  .report-side {
+    position: sticky;
+    top: 84px;
+  }
+  .report-main {
+    min-width: 0;
+  }
+  .report-side__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: lowercase;
+    color: var(--primary);
+    margin-bottom: 10px;
+  }
+  .report-side__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+  }
+  .report-side__list i {
+    color: var(--primary);
+    margin-right: 6px;
+  }
+  .report-type-option .btn-check {
+    display: none;
+  }
+  .report-type-option span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  #typeLost:checked + span {
+    border-color: rgba(239, 68, 68, 0.55);
+    background: rgba(239, 68, 68, 0.14);
+    color: #b91c1c;
+  }
+  #typeFound:checked + span {
+    border-color: rgba(16, 185, 129, 0.55);
+    background: rgba(16, 185, 129, 0.14);
+    color: #047857;
+  }
+  .report-verify-panel {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.85rem 0.95rem;
+  }
+  [data-bs-theme="dark"] .report-verify-panel {
+    background: #0f172a;
+    border-color: rgba(148, 163, 184, 0.26);
+  }
+  /* Cross-browser select chevron alignment */
+  .report-form-card select.field-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 2.35rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.78rem center;
+    background-size: 0.9rem;
+  }
+  .report-form-card select.field-input::-ms-expand {
+    display: none;
+  }
+  [data-bs-theme="dark"] .report-form-card select.field-input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  }
+  @media (max-width: 991px) {
+    .report-layout-grid {
+      grid-template-columns: 1fr;
+    }
+    .report-side {
+      order: 2;
+      position: static;
+    }
+  }
+
+  /* ===== Report photo picker (previews + add pill) ===== */
+  .report-photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(5.75rem, 1fr));
+    gap: 0.65rem;
+    max-width: 100%;
+  }
+  .report-photo-slot {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 1.05rem;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  }
+  [data-bs-theme="dark"] .report-photo-slot {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+  .report-photo-slot__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+  }
+  .report-photo-slot__img.is-loading {
+    opacity: 0.2;
+  }
+  .report-photo-slot__loading {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--primary);
+    font-size: 1.35rem;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .report-photo-slot__shade {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0.38rem 0.42rem 0.42rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.2) 55%, transparent 100%);
+    z-index: 2;
+    pointer-events: none;
+  }
+  .report-photo-slot__name {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  }
+  .report-photo-slot__size {
+    display: block;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.88);
+    margin-top: 1px;
+    letter-spacing: 0.02em;
+  }
+  .report-photo-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 3;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 9999px;
+    border: none;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 0.72rem;
+    color: #fff;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(6px);
+    transition:
+      background 0.15s ease,
+      transform 0.15s ease;
+  }
+  .report-photo-remove:hover {
+    background: rgba(220, 38, 38, 0.92);
+    transform: scale(1.06);
+  }
+  .report-photo-add {
+    aspect-ratio: 1;
+    border-radius: 1.05rem;
+    border: 2px dashed color-mix(in srgb, var(--border-strong) 85%, var(--primary));
+    background: color-mix(in srgb, var(--surface) 92%, var(--surface-2));
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    min-height: 0;
+    transition:
+      border-color 0.18s ease,
+      color 0.18s ease,
+      background 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+  .report-photo-add:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-bg);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+  }
+  .report-photo-add:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+  .report-photo-add i {
+    font-size: 1.45rem;
+    line-height: 1;
+  }
+  .report-photo-add span {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .report-photo-errors {
+    color: var(--danger);
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+  @keyframes report-photo-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .report-photo-spin {
+    display: inline-block;
+    animation: report-photo-spin 0.72s linear infinite;
+  }
+  .btn.report-submit-is-busy {
+    pointer-events: none;
+    opacity: 0.88;
+  }
+</style>
+
+<script>
+  (() => {
+    const MAX_FILES = 8;
+    const MAX_BYTES = 8 * 1024 * 1024;
+    const MIME_OK = new Set(["image/jpeg", "image/png", "image/webp"]);
+    const REPORT_PHOTO_DB = "findit-report";
+    const REPORT_PHOTO_STORE = "photos";
+    const REPORT_PHOTO_KEY = "draftV1";
+    const DRAFT_MAX_AGE_MS = 48 * 60 * 60 * 1000;
+
+    const form = document.getElementById("report-form");
+    const fileInput = document.getElementById("report-photos-input");
+    const grid = document.getElementById("report-photo-grid");
+    const errEl = document.getElementById("report-photo-errors");
+    const submitBtn = document.getElementById("report-submit-btn");
+    if (!form || !fileInput || !grid) return;
+
+    const REPORT_HAS_ERRORS = form.dataset.reportHasErrors === "true";
+
+    const files = [];
+
+    function idbOk() {
+      return typeof indexedDB !== "undefined" && indexedDB !== null;
+    }
+
+    function idbReq(req) {
+      return new Promise((resolve, reject) => {
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function openReportPhotoDb() {
+      return new Promise((resolve, reject) => {
+        const open = indexedDB.open(REPORT_PHOTO_DB, 1);
+        open.onerror = () => reject(open.error);
+        open.onupgradeneeded = () => {
+          if (!open.result.objectStoreNames.contains(REPORT_PHOTO_STORE)) {
+            open.result.createObjectStore(REPORT_PHOTO_STORE);
+          }
+        };
+        open.onsuccess = () => resolve(open.result);
+      });
+    }
+
+    async function clearReportPhotoDraft() {
+      if (!idbOk()) return;
+      try {
+        const db = await openReportPhotoDb();
+        await idbReq(
+          db.transaction(REPORT_PHOTO_STORE, "readwrite").objectStore(REPORT_PHOTO_STORE).delete(REPORT_PHOTO_KEY)
+        );
+        db.close();
+      } catch (_e) {}
+    }
+
+    async function saveReportPhotoDraft(fileArray) {
+      if (!idbOk() || !fileArray.length) return;
+      const entries = await Promise.all(
+        fileArray.map(async (f) => ({
+          name: f.name,
+          type: f.type,
+          lastModified: f.lastModified,
+          buf: await f.arrayBuffer(),
+        }))
+      );
+      const payload = { savedAt: Date.now(), entries };
+      const db = await openReportPhotoDb();
+      await idbReq(
+        db.transaction(REPORT_PHOTO_STORE, "readwrite").objectStore(REPORT_PHOTO_STORE).put(payload, REPORT_PHOTO_KEY)
+      );
+      db.close();
+    }
+
+    async function loadReportPhotoDraft() {
+      if (!idbOk()) return [];
+      try {
+        const db = await openReportPhotoDb();
+        const row = await idbReq(
+          db.transaction(REPORT_PHOTO_STORE, "readonly").objectStore(REPORT_PHOTO_STORE).get(REPORT_PHOTO_KEY)
+        );
+        db.close();
+        if (!row) return [];
+        if (Array.isArray(row)) {
+          return row.map(
+            (e) =>
+              new File([e.buf], e.name, { type: e.type || "image/jpeg", lastModified: e.lastModified || Date.now() })
+          );
+        }
+        if (!row.entries || !Array.isArray(row.entries)) return [];
+        if (Date.now() - Number(row.savedAt || 0) > DRAFT_MAX_AGE_MS) {
+          await clearReportPhotoDraft();
+          return [];
+        }
+        return row.entries.map(
+          (e) => new File([e.buf], e.name, { type: e.type || "image/jpeg", lastModified: e.lastModified || Date.now() })
+        );
+      } catch (_e) {
+        return [];
+      }
+    }
+
+    let draftSaveTimer = null;
+    function scheduleDraftSave() {
+      if (!idbOk()) return;
+      window.clearTimeout(draftSaveTimer);
+      draftSaveTimer = window.setTimeout(() => {
+        if (!files.length) {
+          clearReportPhotoDraft();
+          return;
+        }
+        saveReportPhotoDraft(files).catch(() => {});
+      }, 450);
+    }
+
+    async function flushDraftSave() {
+      window.clearTimeout(draftSaveTimer);
+      if (!idbOk()) return;
+      if (!files.length) {
+        await clearReportPhotoDraft();
+        return;
+      }
+      await saveReportPhotoDraft(files);
+    }
+
+    function fmtSize(n) {
+      if (n < 1024) return `${n} B`;
+      if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+      return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    function showError(msg) {
+      if (!errEl) return;
+      if (!msg) {
+        errEl.textContent = "";
+        errEl.hidden = true;
+        return;
+      }
+      errEl.textContent = msg;
+      errEl.hidden = false;
+      window.clearTimeout(showError._t);
+      showError._t = window.setTimeout(() => {
+        errEl.textContent = "";
+        errEl.hidden = true;
+      }, 5200);
+    }
+
+    function syncInputFromFiles() {
+      const dt = new DataTransfer();
+      files.forEach((f) => dt.items.add(f));
+      fileInput.files = dt.files;
+    }
+
+    function openPicker() {
+      fileInput.click();
+    }
+
+    function revokeUrls(urls) {
+      urls.forEach((u) => {
+        try {
+          URL.revokeObjectURL(u);
+        } catch (_e) {}
+      });
+    }
+
+    function render() {
+      const prevUrls = [];
+      grid.querySelectorAll("img[data-preview-url]").forEach((img) => {
+        const u = img.getAttribute("data-preview-url");
+        if (u) prevUrls.push(u);
+      });
+      revokeUrls(prevUrls);
+      grid.innerHTML = "";
+
+      files.forEach((file) => {
+        const url = URL.createObjectURL(file);
+        const wrap = document.createElement("div");
+        wrap.className = "report-photo-slot";
+
+        const loading = document.createElement("div");
+        loading.className = "report-photo-slot__loading";
+        loading.innerHTML = '<i class="bi bi-arrow-clockwise report-photo-spin" aria-hidden="true"></i>';
+
+        const img = document.createElement("img");
+        img.className = "report-photo-slot__img is-loading";
+        img.alt = "";
+        img.decoding = "async";
+        img.setAttribute("data-preview-url", url);
+        img.src = url;
+        img.addEventListener("load", () => {
+          img.classList.remove("is-loading");
+          loading.remove();
+        });
+        img.addEventListener("error", () => {
+          img.classList.remove("is-loading");
+          loading.innerHTML = '<i class="bi bi-image" aria-hidden="true"></i>';
+        });
+
+        const shade = document.createElement("div");
+        shade.className = "report-photo-slot__shade";
+        const shortName = file.name.length > 26 ? `${file.name.slice(0, 24)}…` : file.name;
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "report-photo-slot__name";
+        nameSpan.textContent = shortName;
+        const sizeSpan = document.createElement("span");
+        sizeSpan.className = "report-photo-slot__size";
+        sizeSpan.textContent = fmtSize(file.size);
+        shade.appendChild(nameSpan);
+        shade.appendChild(sizeSpan);
+
+        const rm = document.createElement("button");
+        rm.type = "button";
+        rm.className = "report-photo-remove";
+        rm.setAttribute("aria-label", "Remove photo");
+        rm.innerHTML = '<i class="bi bi-x-lg" aria-hidden="true"></i>';
+        rm.addEventListener("click", () => {
+          try {
+            URL.revokeObjectURL(url);
+          } catch (_e) {}
+          const i = files.indexOf(file);
+          if (i !== -1) files.splice(i, 1);
+          syncInputFromFiles();
+          render();
+        });
+
+        wrap.appendChild(loading);
+        wrap.appendChild(img);
+        wrap.appendChild(shade);
+        wrap.appendChild(rm);
+        grid.appendChild(wrap);
+      });
+
+      if (files.length < MAX_FILES) {
+        const add = document.createElement("button");
+        add.type = "button";
+        add.className = "report-photo-add";
+        add.setAttribute("aria-label", "Add photos");
+        add.innerHTML = '<i class="bi bi-plus-lg" aria-hidden="true"></i><span>Add</span>';
+        add.addEventListener("click", () => openPicker());
+        grid.appendChild(add);
+      }
+
+      syncInputFromFiles();
+      scheduleDraftSave();
+    }
+
+    fileInput.addEventListener("change", () => {
+      const picked = Array.from(fileInput.files || []);
+      fileInput.value = "";
+      for (let i = 0; i < picked.length; i += 1) {
+        const f = picked[i];
+        if (files.length >= MAX_FILES) {
+          showError(`You can attach at most ${MAX_FILES} images.`);
+          break;
+        }
+        if (!MIME_OK.has(f.type)) {
+          showError("Only JPG, PNG, or WEBP images are allowed.");
+          continue;
+        }
+        if (f.size > MAX_BYTES) {
+          showError("Each image must be 8 MB or smaller.");
+          continue;
+        }
+        const dup = files.some((x) => x.name === f.name && x.size === f.size && x.lastModified === f.lastModified);
+        if (dup) continue;
+        files.push(f);
+      }
+      render();
+    });
+
+    let reportSubmitLocked = false;
+    form.addEventListener("submit", (e) => {
+      if (reportSubmitLocked) {
+        e.preventDefault();
+        return;
+      }
+      e.preventDefault();
+      reportSubmitLocked = true;
+      syncInputFromFiles();
+      if (submitBtn) {
+        submitBtn.classList.add("report-submit-is-busy");
+        submitBtn.disabled = true;
+        submitBtn.dataset.reportSubmitBusy = "1";
+        submitBtn.innerHTML = '<i class="bi bi-arrow-repeat report-photo-spin me-2" aria-hidden="true"></i>Uploading…';
+      }
+      (async () => {
+        try {
+          await flushDraftSave();
+        } catch (_e) {}
+        form.submit();
+      })();
+    });
+
+    (async () => {
+      if (REPORT_HAS_ERRORS) {
+        try {
+          const restored = await loadReportPhotoDraft();
+          files.length = 0;
+          for (let i = 0; i < restored.length; i += 1) {
+            const f = restored[i];
+            if (files.length >= MAX_FILES) break;
+            if (!MIME_OK.has(f.type) || f.size > MAX_BYTES) continue;
+            files.push(f);
+          }
+        } catch (_e) {}
+      }
+      render();
+    })();
+  })();
+</script>
